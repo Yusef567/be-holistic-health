@@ -1,0 +1,39 @@
+{
+  "name": "be-quiz-odyssey",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest",
+    "setup-dbs": "psql -f setup.sql",
+    "seed": "npx tsc && node dist/seeds/run-seed.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Yusef567/BE-quiz-odyssey.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Yusef567/BE-quiz-odyssey/issues"
+  },
+  "homepage": "https://github.com/Yusef567/BE-quiz-odyssey#readme",
+  "devDependencies": {
+    "@types/bcrypt": "^5.0.0",
+    "@types/dotenv": "^8.2.0",
+    "@types/jest": "^29.5.2",
+    "@types/node": "^20.2.5",
+    "@types/pg": "^8.10.1",
+    "@types/pg-format": "^1.0.2",
+    "jest": "^29.5.0",
+    "ts-jest": "^29.1.0",
+    "typescript": "^5.0.4"
+  },
+  "dependencies": {
+    "bcrypt": "^5.1.0",
+    "dotenv": "^16.1.3",
+    "pg": "^8.11.0",
+    "pg-format": "^1.0.4"
+  }
+}
