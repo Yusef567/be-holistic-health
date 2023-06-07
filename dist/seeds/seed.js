@@ -101,12 +101,13 @@ const seed = ({ usersData, categoriesData, quizData, questionsData, answersData,
             content_type,
             user_id,
         ]));
-        yield connection_1.default.query(insertLikesQueryStr);
+        const insertLikesPromise = connection_1.default.query(insertLikesQueryStr);
         const insertQuestionsQueryStr = (0, pg_format_1.default)("INSERT INTO questions (quiz_id, question_text) VALUES %L RETURNING *", formattedQuestionsData.map(({ quiz_id, question_text }) => [
             quiz_id,
             question_text,
         ]));
-        yield connection_1.default.query(insertQuestionsQueryStr);
+        const insertQuestionsPromise = connection_1.default.query(insertQuestionsQueryStr);
+        yield Promise.all([insertLikesPromise, insertQuestionsPromise]);
         const insertAnswersQueryStr = (0, pg_format_1.default)(`INSERT INTO answers (question_id, answer_text, is_correct) VALUES %L`, answersData
             .flat()
             .map(({ question_id, answers }) => answers.map(({ answer_text, is_correct }) => [

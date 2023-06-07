@@ -1,0 +1,24 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = __importDefault(require("express"));
+const cookie_parser_1 = __importDefault(require("cookie-parser"));
+const auth_controllers_1 = require("./controllers/auth-controllers");
+const users_controllers_1 = require("./controllers/users-controllers");
+const auth_controllers_2 = require("./controllers/auth-controllers");
+const error_handlers_1 = require("./middleware/error-handlers");
+const app = (0, express_1.default)();
+app.use(express_1.default.json());
+app.use((0, cookie_parser_1.default)());
+app.post("/api/login", auth_controllers_1.loginUser);
+app.get("/api/protected", users_controllers_1.protectedController);
+app.post("/api/users", users_controllers_1.postUser);
+app.post("/api/refresh-token", auth_controllers_2.refreshTokens);
+app.post("/api/logout", auth_controllers_1.logoutUser);
+app.use(error_handlers_1.handlePSQL400sErrors);
+app.use(error_handlers_1.handleCustomErrors);
+app.use(error_handlers_1.handleJwtErrors);
+app.use(error_handlers_1.handle500Errors);
+exports.default = app;
