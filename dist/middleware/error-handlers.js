@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.handle500Errors = exports.handleJwtErrors = exports.handleCustomErrors = exports.handlePSQL400sErrors = void 0;
+exports.handlePathNotFound = exports.handle500Errors = exports.handleJwtErrors = exports.handleCustomErrors = exports.handlePSQL400sErrors = void 0;
 const handlePSQL400sErrors = (err, req, res, next) => {
     if (err.code === "23505" && err.constraint === "users_username_key") {
         res.status(409).send({ msg: "Username already exists" });
@@ -36,3 +36,7 @@ const handle500Errors = (err, req, res, next) => {
     res.status(500).send({ msg: "Server Error" });
 };
 exports.handle500Errors = handle500Errors;
+const handlePathNotFound = (req, res) => {
+    res.status(404).send({ msg: "Path not found" });
+};
+exports.handlePathNotFound = handlePathNotFound;

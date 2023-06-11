@@ -55,3 +55,7 @@ export const handle500Errors = (
   console.log(err, "<<<---- 500 ERROR");
   res.status(500).send({ msg: "Server Error" });
 };
+
+export const handlePathNotFound = (req: Request, res: Response) => {
+  res.status(404).send({ msg: "Path not found" });
+};
