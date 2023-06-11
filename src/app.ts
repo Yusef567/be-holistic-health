@@ -8,7 +8,10 @@ import {
   handleCustomErrors,
   handleJwtErrors,
   handlePSQL400sErrors,
+  handlePathNotFound,
 } from "./middleware/error-handlers";
+import { getCategories } from "./controllers/categories-controllers";
+import { getQuizzes } from "./controllers/quizzes-controllers";
 
 const app: Application = express();
 
@@ -25,6 +28,12 @@ app.post("/api/users", postUser);
 app.post("/api/refresh-token", refreshTokens);
 
 app.post("/api/logout", logoutUser);
+
+app.get("/api/categories", getCategories);
+
+app.get("/api/quizzes", getQuizzes);
+
+app.use("/*", handlePathNotFound);
 
 app.use(handlePSQL400sErrors);
 app.use(handleCustomErrors);

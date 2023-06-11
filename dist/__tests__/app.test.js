@@ -18,6 +18,7 @@ const index_1 = __importDefault(require("../data/test-data/index"));
 const supertest_1 = __importDefault(require("supertest"));
 const app_1 = __importDefault(require("../app"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
+require("jest-sorted");
 let accessToken;
 let refreshToken;
 beforeAll(() => __awaiter(void 0, void 0, void 0, function* () {
@@ -274,4 +275,148 @@ describe("POST /api/logout", () => {
             .expect(401);
         expect(body.msg).toBe("Refresh token has expired");
     }));
+});
+describe("GET /api/categories", () => {
+    it("200: should respond with an array of category objects", () => __awaiter(void 0, void 0, void 0, function* () {
+        const { body } = yield (0, supertest_1.default)(app_1.default).get("/api/categories").expect(200);
+        const { categories } = body;
+        expect(categories).toBeInstanceOf(Array);
+        expect(categories).toHaveLength(5);
+        categories.forEach((category) => {
+            expect(category).toEqual({
+                category_id: expect.any(Number),
+                category: expect.any(String),
+            });
+        });
+    }));
+});
+describe("Non existent Paths", () => {
+    it("404: should respond with a msg if the path does not exist", () => __awaiter(void 0, void 0, void 0, function* () {
+        const { body } = yield (0, supertest_1.default)(app_1.default).get("/api/catagories").expect(404);
+        const response = yield (0, supertest_1.default)(app_1.default).get("/helloWorld").expect(404);
+        expect(body.msg).toBe("Path not found");
+        expect(response.body.msg).toBe("Path not found");
+    }));
+});
+describe("GET /api/quizzes", () => {
+    it("200: should respond with an array of quiz objects with the correct properties", () => __awaiter(void 0, void 0, void 0, function* () {
+        const { body } = yield (0, supertest_1.default)(app_1.default).get("/api/quizzes").expect(200);
+        const { quizzes } = body;
+        expect(quizzes).toBeInstanceOf(Array);
+        quizzes.forEach((quiz) => {
+            expect(quiz).toMatchObject({
+                quiz_id: expect.any(Number),
+                quiz_name: expect.any(String),
+                quiz_img: expect.any(String),
+                category: expect.any(String),
+                description: expect.any(String),
+                username: expect.any(String),
+                release_date: expect.any(String),
+                likes: expect.any(Number),
+            });
+        });
+    }));
+    describe("GET /api/quizzes?queries", () => {
+        it("200: should default to sort the quizzes by release_date in descending order", () => __awaiter(void 0, void 0, void 0, function* () {
+            const { body } = yield (0, supertest_1.default)(app_1.default).get("/api/quizzes").expect(200);
+            const { quizzes } = body;
+            expect(quizzes).toBeSortedBy("release_date", { descending: true });
+        }));
+        it("200: should respond with an array of quizzes from the queried category", () => __awaiter(void 0, void 0, void 0, function* () {
+            const { body } = yield (0, supertest_1.default)(app_1.default)
+                .get("/api/quizzes?category=Travel")
+                .expect(200);
+            const { quizzes } = body;
+            expect(quizzes).toHaveLength(2);
+            quizzes.forEach((quiz) => {
+                expect(quiz.category).toBe("Travel");
+            });
+        }));
+        it("200: should respond with an empty array if passed a valid category that has no associated quizzes ", () => __awaiter(void 0, void 0, void 0, function* () {
+            const { body } = yield (0, supertest_1.default)(app_1.default)
+                .get("/api/quizzes?category=Cars")
+                .expect(200);
+            const { quizzes } = body;
+            expect(quizzes).toBeInstanceOf(Array);
+            expect(quizzes).toHaveLength(0);
+        }));
+        it("200: should repsond with an array of quizzes sorted by the specified column", () => __awaiter(void 0, void 0, void 0, function* () {
+            const { body } = yield (0, supertest_1.default)(app_1.default)
+                .get("/api/quizzes?sort_by=likes")
+                .expect(200);
+            const { quizzes } = body;
+            expect(quizzes).toBeSortedBy("likes", { descending: true });
+        }));
+        it("200: should respond with an array of quizzes sorted in ascending order by quiz name", () => __awaiter(void 0, void 0, void 0, function* () {
+            const { body } = yield (0, supertest_1.default)(app_1.default)
+                .get("/api/quizzes?sort_by=quiz_name&order=asc")
+                .expect(200);
+            const { quizzes } = body;
+            expect(quizzes).toBeSortedBy("quiz_name", { descending: false });
+        }));
+        it("400: should respond with a msg if passed a non exsitent column name", () => __awaiter(void 0, void 0, void 0, function* () {
+            const { body } = yield (0, supertest_1.default)(app_1.default)
+                .get("/api/quizzes?sort_by=price")
+                .expect(400);
+            expect(body.msg).toBe("Invalid column specified");
+        }));
+        it("400: should respond with a msg if passed an invalid order_by query", () => __awaiter(void 0, void 0, void 0, function* () {
+            const { body } = yield (0, supertest_1.default)(app_1.default)
+                .get("/api/quizzes?sort_by=likes&order=high")
+                .expect(400);
+            expect(body.msg).toBe("Invalid order query");
+        }));
+        it("404: should respond with a msg if passed a category that does not exist", () => __awaiter(void 0, void 0, void 0, function* () {
+            const { body } = yield (0, supertest_1.default)(app_1.default)
+                .get("/api/quizzes?category=Food")
+                .expect(404);
+            expect(body.msg).toBe("Category not found");
+        }));
+    });
+    describe("GET /api/quizzes?pagination", () => {
+        it("200: should repsond with a default limit of 10 quizzes and a total count", () => __awaiter(void 0, void 0, void 0, function* () {
+            const { body } = yield (0, supertest_1.default)(app_1.default).get("/api/quizzes").expect(200);
+            const { quizzes, totalCount } = body;
+            expect(totalCount).toBe(10);
+            expect(quizzes).toHaveLength(10);
+        }));
+        it("200:  should respond with the correct quizzes when passed a category and limit", () => __awaiter(void 0, void 0, void 0, function* () {
+            const { body } = yield (0, supertest_1.default)(app_1.default)
+                .get("/api/quizzes?category=Travel&limit=1")
+                .expect(200);
+            const { quizzes, totalCount } = body;
+            expect(totalCount).toBe(2);
+            expect(quizzes).toHaveLength(1);
+            quizzes.forEach((quiz) => expect(quiz.category).toBe("Travel"));
+        }));
+        it("200: should respond with the correct amount of quizzes when passed a page", () => __awaiter(void 0, void 0, void 0, function* () {
+            const { body } = yield (0, supertest_1.default)(app_1.default)
+                .get("/api/quizzes?limit=5&p=2")
+                .expect(200);
+            const { quizzes, totalCount } = body;
+            expect(totalCount).toBe(10);
+            expect(quizzes).toHaveLength(5);
+        }));
+        it("200: should respond with an empty array when passed a page that exceeds the available pages", () => __awaiter(void 0, void 0, void 0, function* () {
+            const { body } = yield (0, supertest_1.default)(app_1.default)
+                .get("/api/quizzes?limit=5&p=3")
+                .expect(200);
+            const { quizzes, totalCount } = body;
+            expect(totalCount).toBe(10);
+            expect(quizzes).toBeInstanceOf(Array);
+            expect(quizzes).toHaveLength(0);
+        }));
+        it("400: should respond with a msg if passed an invalid limit", () => __awaiter(void 0, void 0, void 0, function* () {
+            const { body } = yield (0, supertest_1.default)(app_1.default)
+                .get("/api/quizzes?limit=half&p=1")
+                .expect(400);
+            expect(body.msg).toBe("Invalid limit query specified");
+        }));
+        it("400: should respond with a msg if passed an invalid page", () => __awaiter(void 0, void 0, void 0, function* () {
+            const { body } = yield (0, supertest_1.default)(app_1.default)
+                .get("/api/quizzes?limit=5&p=second")
+                .expect(400);
+            expect(body.msg).toBe("Invalid page query specified");
+        }));
+    });
 });
