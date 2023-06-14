@@ -420,3 +420,228 @@ describe("GET /api/quizzes", () => {
         }));
     });
 });
+describe("GET /api/quizzes/:quiz_id", () => {
+    it("200: should respond with the correct keys and values for the quiz_id passed ", () => __awaiter(void 0, void 0, void 0, function* () {
+        const { body } = yield (0, supertest_1.default)(app_1.default).get("/api/quizzes/4").expect(200);
+        const questionsAndAnswers = [
+            {
+                question_id: 25,
+                question_text: "What is the tallest waterfall in the world?",
+                answers: [
+                    { answer_id: 97, answer_text: "Angel Falls", is_correct: true },
+                    { answer_id: 98, answer_text: "Niagara Falls", is_correct: false },
+                    { answer_id: 99, answer_text: "Iguazu Falls", is_correct: false },
+                    {
+                        answer_id: 100,
+                        answer_text: "Victoria Falls",
+                        is_correct: false,
+                    },
+                ],
+            },
+            {
+                question_id: 26,
+                question_text: "Which country is home to the famous ancient city of Petra?",
+                answers: [
+                    { answer_id: 101, answer_text: "Jordan", is_correct: true },
+                    { answer_id: 102, answer_text: "Greece", is_correct: false },
+                    { answer_id: 103, answer_text: "Italy", is_correct: false },
+                    { answer_id: 104, answer_text: "Egypt", is_correct: false },
+                ],
+            },
+            {
+                question_id: 27,
+                question_text: "What is the official language of Brazil?",
+                answers: [
+                    { answer_id: 105, answer_text: "Portuguese", is_correct: true },
+                    { answer_id: 106, answer_text: "Spanish", is_correct: false },
+                    { answer_id: 107, answer_text: "French", is_correct: false },
+                    { answer_id: 108, answer_text: "English", is_correct: false },
+                ],
+            },
+            {
+                question_id: 28,
+                question_text: "Which country is famous for its beautiful tulip fields?",
+                answers: [
+                    { answer_id: 109, answer_text: "Netherlands", is_correct: true },
+                    { answer_id: 110, answer_text: "Germany", is_correct: false },
+                    { answer_id: 111, answer_text: "France", is_correct: false },
+                    { answer_id: 112, answer_text: "Denmark", is_correct: false },
+                ],
+            },
+            {
+                question_id: 29,
+                question_text: "What is the name of the iconic statue in Rio de Janeiro, Brazil?",
+                answers: [
+                    {
+                        answer_id: 113,
+                        answer_text: "Christ the Redeemer",
+                        is_correct: true,
+                    },
+                    { answer_id: 114, answer_text: "The Colosseum", is_correct: false },
+                    {
+                        answer_id: 115,
+                        answer_text: "The Great Wall",
+                        is_correct: false,
+                    },
+                    {
+                        answer_id: 116,
+                        answer_text: "The Statue of Liberty",
+                        is_correct: false,
+                    },
+                ],
+            },
+            {
+                question_id: 30,
+                question_text: "Which city is renowned for its historical ruins of Machu Picchu?",
+                answers: [
+                    { answer_id: 117, answer_text: "Cusco", is_correct: true },
+                    { answer_id: 118, answer_text: "Athens", is_correct: false },
+                    { answer_id: 119, answer_text: "Cairo", is_correct: false },
+                    { answer_id: 120, answer_text: "Rome", is_correct: false },
+                ],
+            },
+            {
+                question_id: 31,
+                question_text: "What is the currency used in Japan?",
+                answers: [
+                    { answer_id: 121, answer_text: "Japanese Yen", is_correct: true },
+                    { answer_id: 122, answer_text: "Euro", is_correct: false },
+                    {
+                        answer_id: 123,
+                        answer_text: "Pound Sterling",
+                        is_correct: false,
+                    },
+                    { answer_id: 124, answer_text: "US Dollar", is_correct: false },
+                ],
+            },
+            {
+                question_id: 32,
+                question_text: "Which African country is known for its wildlife safaris?",
+                answers: [
+                    { answer_id: 125, answer_text: "Kenya", is_correct: true },
+                    { answer_id: 126, answer_text: "Madagascar", is_correct: false },
+                    { answer_id: 127, answer_text: "Tanzania", is_correct: false },
+                    { answer_id: 128, answer_text: "South Africa", is_correct: false },
+                ],
+            },
+        ];
+        const { quiz } = body;
+        expect(quiz).toEqual({
+            quiz_id: 4,
+            quiz_name: "Travel Destinations Trivia",
+            category: "Travel",
+            username: "Tom123",
+            release_date: expect.any(String),
+            description: "Test your knowledge of popular travel destinations around the world with this trivia quiz.",
+            quiz_img: "https://images.pexels.com/photos/1117132/pexels-photo-1117132.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
+            likes: 1,
+            comment_count: 0,
+            questions: [...questionsAndAnswers],
+        });
+    }));
+    it("200: should respond with a comment_count of 0 if the quiz has no comments", () => __awaiter(void 0, void 0, void 0, function* () {
+        const { body } = yield (0, supertest_1.default)(app_1.default).get("/api/quizzes/7").expect(200);
+        const { quiz } = body;
+        expect(quiz.comment_count).toBe(0);
+    }));
+    it("400: should respond with a msg if passed an invalid quiz_id", () => __awaiter(void 0, void 0, void 0, function* () {
+        const { body: { msg }, } = yield (0, supertest_1.default)(app_1.default).get("/api/quizzes/first").expect(400);
+        expect(msg).toBe("Invalid quiz_id specified");
+    }));
+    it("404: should respond with a msg if passed a valid but non existent quiz_id", () => __awaiter(void 0, void 0, void 0, function* () {
+        const { body: { msg }, } = yield (0, supertest_1.default)(app_1.default).get("/api/quizzes/50").expect(404);
+        expect(msg).toBe("quiz_id not found");
+    }));
+});
+describe("GET /api/quizzes/:quiz_id/comments", () => {
+    it("200: should respond with an array of comments for the quiz_id passed", () => __awaiter(void 0, void 0, void 0, function* () {
+        const { body } = yield (0, supertest_1.default)(app_1.default)
+            .get("/api/quizzes/1/comments")
+            .expect(200);
+        const { comments } = body;
+        expect(comments).toBeInstanceOf(Array);
+        expect(comments).toHaveLength(10);
+        comments.forEach((comment) => {
+            expect(comment).toMatchObject({
+                comment_id: expect.any(Number),
+                quiz_id: 1,
+                created_at: expect.any(String),
+                comment_text: expect.any(String),
+                username: expect.any(String),
+                user_id: expect.any(Number),
+            });
+        });
+    }));
+    it("200: should respond with the comments ordered by newest in descending order", () => __awaiter(void 0, void 0, void 0, function* () {
+        const { body } = yield (0, supertest_1.default)(app_1.default)
+            .get("/api/quizzes/1/comments")
+            .expect(200);
+        const { comments } = body;
+        expect(comments).toBeSortedBy("created_at", {
+            descending: true,
+        });
+    }));
+    it("200: should respond with an empty array if passed a quiz_id that has no comments", () => __awaiter(void 0, void 0, void 0, function* () {
+        const { body } = yield (0, supertest_1.default)(app_1.default)
+            .get("/api/quizzes/2/comments")
+            .expect(200);
+        const { comments } = body;
+        expect(comments).toBeInstanceOf(Array);
+        expect(comments).toHaveLength(0);
+    }));
+    it("400: should repsond a with a msg if passed an invalid quiz_id", () => __awaiter(void 0, void 0, void 0, function* () {
+        const { body: { msg }, } = yield (0, supertest_1.default)(app_1.default).get("/api/quizzes/four/comments").expect(400);
+        expect(msg).toBe("Invalid quiz_id specified");
+    }));
+    it("404: should respond with a msg if passed a valid but non existent quiz_id", () => __awaiter(void 0, void 0, void 0, function* () {
+        const { body: { msg }, } = yield (0, supertest_1.default)(app_1.default).get("/api/quizzes/20/comments").expect(404);
+        expect(msg).toBe("quiz_id not found");
+    }));
+    describe("GET /api/quizzes/:quiz_id/comments?pagination", () => {
+        it("200: should respond with a default limit of 10 comments and a total count", () => __awaiter(void 0, void 0, void 0, function* () {
+            const { body } = yield (0, supertest_1.default)(app_1.default)
+                .get("/api/quizzes/1/comments")
+                .expect(200);
+            const { comments, totalCount } = body;
+            expect(comments).toHaveLength(10);
+            expect(totalCount).toBe(10);
+        }));
+        it("200: should respond with the correct amount of comments when passed a limit ", () => __awaiter(void 0, void 0, void 0, function* () {
+            const { body } = yield (0, supertest_1.default)(app_1.default)
+                .get("/api/quizzes/1/comments?limit=5")
+                .expect(200);
+            const { comments, totalCount } = body;
+            expect(comments).toHaveLength(5);
+            expect(totalCount).toBe(10);
+        }));
+        it("200: should respond with the correct amount of comments when passed a page", () => __awaiter(void 0, void 0, void 0, function* () {
+            const { body } = yield (0, supertest_1.default)(app_1.default)
+                .get("/api/quizzes/1/comments?limit=4&p=3")
+                .expect(200);
+            const { comments, totalCount } = body;
+            expect(comments).toHaveLength(2);
+            expect(totalCount).toBe(10);
+        }));
+        it("200: should respond with an empty array when passed a page that exceeds the available pages", () => __awaiter(void 0, void 0, void 0, function* () {
+            const { body } = yield (0, supertest_1.default)(app_1.default)
+                .get("/api/quizzes/1/comments?limit=5&p=3")
+                .expect(200);
+            const { comments, totalCount } = body;
+            expect(totalCount).toBe(10);
+            expect(comments).toBeInstanceOf(Array);
+            expect(comments).toHaveLength(0);
+        }));
+        it("400: should respond with a msg if passed an invalid limit ", () => __awaiter(void 0, void 0, void 0, function* () {
+            const { body: { msg }, } = yield (0, supertest_1.default)(app_1.default)
+                .get("/api/quizzes/1/comments?limit=five&p=1")
+                .expect(400);
+            expect(msg).toBe("Invalid limit query specified");
+        }));
+        it("400: should respond with a msg if passed an invalid page", () => __awaiter(void 0, void 0, void 0, function* () {
+            const { body: { msg }, } = yield (0, supertest_1.default)(app_1.default)
+                .get("/api/quizzes/1/comments?limit=5&p=first")
+                .expect(400);
+            expect(msg).toBe("Invalid page query specified");
+        }));
+    });
+});

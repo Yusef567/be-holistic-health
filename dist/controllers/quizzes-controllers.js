@@ -9,12 +9,12 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getQuizzes = void 0;
+exports.getQuiz = exports.getQuizzes = void 0;
 const categories_models_1 = require("../models/categories-models");
 const quizzes_models_1 = require("../models/quizzes-models");
 const getQuizzes = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { category, sort_by, order, limit, p } = req.query;
+        const { category, sort_by, order, limit, p, } = req.query;
         if (category) {
             yield (0, categories_models_1.checkCategory)(category);
             const { quizzes, totalCount } = yield (0, quizzes_models_1.fetchQuizzes)(category, sort_by, order, limit, p);
@@ -30,3 +30,14 @@ const getQuizzes = (req, res, next) => __awaiter(void 0, void 0, void 0, functio
     }
 });
 exports.getQuizzes = getQuizzes;
+const getQuiz = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { quiz_id } = req.params;
+        const quiz = yield (0, quizzes_models_1.fetchQuiz)(quiz_id);
+        res.status(200).send({ quiz });
+    }
+    catch (err) {
+        next(err);
+    }
+});
+exports.getQuiz = getQuiz;
