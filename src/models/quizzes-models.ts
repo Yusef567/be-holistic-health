@@ -1,4 +1,5 @@
 import db from "../connection";
+import { formattedQuestionsAndAnswers } from "../utils/quizUtils";
 
 export const fetchQuizzes = async (
   category?: string,
@@ -55,4 +56,59 @@ export const fetchQuizzes = async (
   const { rows } = quizzesQueryResponse;
 
   return { quizzes: rows, totalCount };
+};
+
+export const fetchQuiz = async (quiz_id: string) => {
+  const isNumber = /^[0-9]+$/;
+
+  if (!isNumber.test(quiz_id)) {
+    throw { status: 400, msg: "Invalid quiz_id specified" };
+  }
+
+  const quizQueryStr = `SELECT q.quiz_id, q.quiz_name, q.description, q.quiz_img, q.category, q.username, q.release_date,
+  CAST(COUNT(l.like_id) AS INT) AS likes,
+  CAST(COUNT(c.comment_id) AS INT) AS comment_count
+  FROM quizzes q
+  LEFT JOIN likes l ON l.content_id = q.quiz_id AND l.content_type = 'quiz'
+  LEFT JOIN comments c ON c.quiz_id = q.quiz_id
+  WHERE q.quiz_id = $1
+  GROUP BY q.quiz_id;`;
+
+  const quizQueryResponse = await db.query(quizQueryStr, [quiz_id]);
+  const quizInfo = quizQueryResponse.rows[0];
+
+  if (!quizInfo) {
+    throw { status: 404, msg: "quiz_id not found" };
+  }
+
+  const answersAndQuestionsQuery = `SELECT a.answer_id, a.question_id, a.answer_text, a.is_correct, q.question_text
+  FROM answers a
+  JOIN questions q ON a.question_id = q.question_id
+  WHERE q.quiz_id = $1`;
+
+  const answersAndQuestionsResponse = await db.query(answersAndQuestionsQuery, [
+    quiz_id,
+  ]);
+  const answersAndQuestions = answersAndQuestionsResponse.rows;
+
+  const formattedData = formattedQuestionsAndAnswers(answersAndQuestions);
+  return { ...quizInfo, questions: formattedData };
+};
+
+export const checkQuizIsValid = async (quiz_id: string) => {
+  const isNumber = /^[0-9]+$/;
+
+  if (!isNumber.test(quiz_id)) {
+    throw { status: 400, msg: "Invalid quiz_id specified" };
+  }
+
+  const quizQueryStr = `SELECT * FROM quizzes WHERE quiz_id = $1`;
+  const quizQueryResponse = await db.query(quizQueryStr, [quiz_id]);
+  const foundQuiz = quizQueryResponse.rows[0];
+
+  if (!foundQuiz) {
+    throw { status: 404, msg: "quiz_id not found" };
+  }
+
+  return foundQuiz;
 };
