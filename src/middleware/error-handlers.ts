@@ -8,6 +8,8 @@ export const handlePSQL400sErrors = (
 ) => {
   if (err.code === "23505" && err.constraint === "users_username_key") {
     res.status(409).send({ msg: "Username already exists" });
+  } else if (err.code === "22P02") {
+    res.status(400).send({ msg: "Invalid value specified" });
   } else {
     next(err);
   }

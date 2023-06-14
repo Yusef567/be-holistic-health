@@ -25,6 +25,42 @@ const commentsData = [
     username: "Tom123",
   },
   {
+    quiz_id: 1,
+    comment_text: "Nulla sollicitudin purus ut mauris posuere gravida.",
+    user_id: 1,
+    username: "Tom123",
+  },
+  {
+    quiz_id: 1,
+    comment_text: "Nulla sollicitudin purus ut mauris posuere gravida.",
+    user_id: 1,
+    username: "Tom123",
+  },
+  {
+    quiz_id: 1,
+    comment_text: "Nulla sollicitudin purus ut mauris posuere gravida.",
+    user_id: 1,
+    username: "Tom123",
+  },
+  {
+    quiz_id: 1,
+    comment_text: "Nulla sollicitudin purus ut mauris posuere gravida.",
+    user_id: 1,
+    username: "Tom123",
+  },
+  {
+    quiz_id: 1,
+    comment_text: "Nulla sollicitudin purus ut mauris posuere gravida.",
+    user_id: 1,
+    username: "Tom123",
+  },
+  {
+    quiz_id: 1,
+    comment_text: "Nulla sollicitudin purus ut mauris posuere gravida.",
+    user_id: 1,
+    username: "Tom123",
+  },
+  {
     quiz_id: 6,
     comment_text:
       "Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas.",

@@ -13,3 +13,12 @@ export interface FirstQuiz {
   release_date: string;
   likes: number;
 }
+
+export interface Comment {
+  comment_id: number;
+  quiz_id: number;
+  created_at: string;
+  comment_text: string;
+  username: string;
+  user_id: number;
+}
