@@ -5,7 +5,7 @@ import request from "supertest";
 import app from "../app";
 import jwt from "jsonwebtoken";
 import "jest-sorted";
-import { Category, FirstQuiz } from "../interfaces/interfaces";
+import { Category, Comment, FirstQuiz } from "../interfaces/interfaces";
 
 let accessToken: string;
 let refreshToken: string;
