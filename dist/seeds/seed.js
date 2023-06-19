@@ -45,6 +45,7 @@ const seed = ({ usersData, categoriesData, quizData, questionsData, answersData,
           quiz_img VARCHAR NOT NULL,
           description VARCHAR NOT NULL,
           username VARCHAR NOT NULL REFERENCES users(username),
+          user_id INT REFERENCES users(user_id) NOT NULL,
           release_date TIMESTAMP DEFAULT NOW()
       );`);
         yield connection_1.default.query(`
@@ -52,7 +53,8 @@ const seed = ({ usersData, categoriesData, quizData, questionsData, answersData,
         like_id SERIAL PRIMARY KEY,
         content_id INT NOT NULL,
         content_type VARCHAR(10) NOT NULL,
-        user_id INT REFERENCES users(user_id) NOT NULL
+        user_id INT REFERENCES users(user_id) NOT NULL,
+        like_value INT NOT NULL
       );
     `);
         yield connection_1.default.query(`
@@ -77,7 +79,7 @@ const seed = ({ usersData, categoriesData, quizData, questionsData, answersData,
         user_id INT REFERENCES users(user_id) NOT NULL,
         created_at TIMESTAMP DEFAULT NOW()
       );`);
-        const insertUsersQueryStr = (0, pg_format_1.default)("INSERT INTO users (username, password, salt) VALUES %L", usersData.map(({ username, password, salt }) => [
+        const insertUsersQueryStr = (0, pg_format_1.default)("INSERT INTO users (username, password, salt) VALUES %L RETURNING *", usersData.map(({ username, password, salt }) => [
             username,
             password,
             salt,
@@ -85,21 +87,28 @@ const seed = ({ usersData, categoriesData, quizData, questionsData, answersData,
         const insertUsersPromise = connection_1.default.query(insertUsersQueryStr);
         const insertCategoriesQueryStr = (0, pg_format_1.default)("INSERT INTO categories (category) VALUES %L", categoriesData.map(({ category }) => [category]));
         const insertCategoriesPromise = connection_1.default.query(insertCategoriesQueryStr);
-        yield Promise.all([insertUsersPromise, insertCategoriesPromise]);
-        const insertQuizzesQueryStr = (0, pg_format_1.default)("INSERT INTO quizzes (quiz_name,category,quiz_img,description,username) VALUES %L RETURNING *", quizData.map(({ quiz_name, category, quiz_img, description, username }) => [
+        const insertedUsersCategories = yield Promise.all([
+            insertUsersPromise,
+            insertCategoriesPromise,
+        ]);
+        const insertedUsers = insertedUsersCategories[0].rows;
+        const quizDataWithUserIds = (0, seedUtils_1.quizzesWithUserIds)(quizData, insertedUsers);
+        const insertQuizzesQueryStr = (0, pg_format_1.default)("INSERT INTO quizzes (quiz_name,category,quiz_img,description,username, user_id) VALUES %L RETURNING *", quizDataWithUserIds.map(({ quiz_name, category, quiz_img, description, username, user_id }) => [
             quiz_name,
             category,
             quiz_img,
             description,
             username,
+            user_id,
         ]));
         const insertedQuizzesResponse = yield connection_1.default.query(insertQuizzesQueryStr);
         const insertedQuizzesArr = insertedQuizzesResponse.rows;
         const formattedQuestionsData = (0, seedUtils_1.prepareQuestionData)(questionsData, insertedQuizzesArr);
-        const insertLikesQueryStr = (0, pg_format_1.default)(`INSERT INTO likes (content_id, content_type, user_id) VALUES %L`, likesData.map(({ content_id, content_type, user_id }) => [
+        const insertLikesQueryStr = (0, pg_format_1.default)(`INSERT INTO likes (content_id, content_type, user_id, like_value) VALUES %L`, likesData.map(({ content_id, content_type, user_id, like_value }) => [
             content_id,
             content_type,
             user_id,
+            like_value,
         ]));
         const insertLikesPromise = connection_1.default.query(insertLikesQueryStr);
         const insertQuestionsQueryStr = (0, pg_format_1.default)("INSERT INTO questions (quiz_id, question_text) VALUES %L RETURNING *", formattedQuestionsData.map(({ quiz_id, question_text }) => [

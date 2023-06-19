@@ -11,8 +11,15 @@ import {
   handlePathNotFound,
 } from "./middleware/error-handlers";
 import { getCategories } from "./controllers/categories-controllers";
-import { getQuiz, getQuizzes } from "./controllers/quizzes-controllers";
-import { getQuizComments } from "./controllers/comments-controllers";
+import {
+  getQuiz,
+  getQuizzes,
+  postQuiz,
+} from "./controllers/quizzes-controllers";
+import {
+  getQuizComments,
+  postComment,
+} from "./controllers/comments-controllers";
 
 const app: Application = express();
 
@@ -37,6 +44,10 @@ app.get("/api/quizzes", getQuizzes);
 app.get("/api/quizzes/:quiz_id", getQuiz);
 
 app.get("/api/quizzes/:quiz_id/comments", getQuizComments);
+
+app.post("/api/quizzes", postQuiz);
+
+app.post("/api/quizzes/:quiz_id/comments", postComment);
 
 app.use("/*", handlePathNotFound);
 

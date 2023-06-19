@@ -22,3 +22,30 @@ export interface Comment {
   username: string;
   user_id: number;
 }
+
+export interface User {
+  user_id: number;
+  username: string;
+  password: string;
+  salt: string;
+}
+
+export interface Answer {
+  answer_text: string;
+  is_correct: boolean;
+}
+
+export interface Questions {
+  question_text: string;
+  answers: Answer[];
+}
+
+export interface NewQuiz {
+  quiz_name: string;
+  category: string;
+  username: string;
+  user_id: number;
+  description: string;
+  quiz_img: string;
+  questions: Questions[];
+}

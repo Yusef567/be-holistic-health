@@ -8,10 +8,14 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getQuiz = exports.getQuizzes = void 0;
+exports.postQuiz = exports.getQuiz = exports.getQuizzes = void 0;
 const categories_models_1 = require("../models/categories-models");
 const quizzes_models_1 = require("../models/quizzes-models");
+const passport_config_1 = __importDefault(require("../passport-config"));
 const getQuizzes = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { category, sort_by, order, limit, p, } = req.query;
@@ -41,3 +45,19 @@ const getQuiz = (req, res, next) => __awaiter(void 0, void 0, void 0, function* 
     }
 });
 exports.getQuiz = getQuiz;
+const postQuiz = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    passport_config_1.default.authenticate("jwt", { session: false }, (err, user, info) => __awaiter(void 0, void 0, void 0, function* () {
+        try {
+            if (err || !user) {
+                return res.status(401).send({ msg: "Unauthorized" });
+            }
+            const newQuiz = req.body;
+            const addedQuiz = yield (0, quizzes_models_1.insertQuiz)(newQuiz, user);
+            res.status(201).send({ addedQuiz });
+        }
+        catch (err) {
+            next(err);
+        }
+    }))(req, res, next);
+});
+exports.postQuiz = postQuiz;

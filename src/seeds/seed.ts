@@ -1,13 +1,19 @@
 import format from "pg-format";
 import db from "../connection";
-import { prepareQuestionData } from "../utils/seedUtils";
+import { prepareQuestionData, quizzesWithUserIds } from "../utils/seedUtils";
 
 interface User {
   username: string;
   password: string;
   salt: string;
 }
-
+export interface InsertedUser {
+  user_id: number;
+  username: string;
+  password: string;
+  salt: string;
+  refresh_token: string;
+}
 interface Category {
   category: string;
 }
@@ -46,6 +52,7 @@ interface Like {
   content_id: number;
   content_type: string;
   user_id: number;
+  like_value: number;
 }
 const seed = async ({
   usersData,
@@ -96,6 +103,7 @@ const seed = async ({
           quiz_img VARCHAR NOT NULL,
           description VARCHAR NOT NULL,
           username VARCHAR NOT NULL REFERENCES users(username),
+          user_id INT REFERENCES users(user_id) NOT NULL,
           release_date TIMESTAMP DEFAULT NOW()
       );`);
 
@@ -104,7 +112,8 @@ const seed = async ({
         like_id SERIAL PRIMARY KEY,
         content_id INT NOT NULL,
         content_type VARCHAR(10) NOT NULL,
-        user_id INT REFERENCES users(user_id) NOT NULL
+        user_id INT REFERENCES users(user_id) NOT NULL,
+        like_value INT NOT NULL
       );
     `);
 
@@ -134,7 +143,7 @@ const seed = async ({
       );`);
 
     const insertUsersQueryStr = format(
-      "INSERT INTO users (username, password, salt) VALUES %L",
+      "INSERT INTO users (username, password, salt) VALUES %L RETURNING *",
       usersData.map(({ username, password, salt }) => [
         username,
         password,
@@ -149,17 +158,24 @@ const seed = async ({
     );
     const insertCategoriesPromise = db.query(insertCategoriesQueryStr);
 
-    await Promise.all([insertUsersPromise, insertCategoriesPromise]);
+    const insertedUsersCategories = await Promise.all([
+      insertUsersPromise,
+      insertCategoriesPromise,
+    ]);
+
+    const insertedUsers: InsertedUser[] = insertedUsersCategories[0].rows;
+    const quizDataWithUserIds = quizzesWithUserIds(quizData, insertedUsers);
 
     const insertQuizzesQueryStr = format(
-      "INSERT INTO quizzes (quiz_name,category,quiz_img,description,username) VALUES %L RETURNING *",
-      quizData.map(
-        ({ quiz_name, category, quiz_img, description, username }) => [
+      "INSERT INTO quizzes (quiz_name,category,quiz_img,description,username, user_id) VALUES %L RETURNING *",
+      quizDataWithUserIds.map(
+        ({ quiz_name, category, quiz_img, description, username, user_id }) => [
           quiz_name,
           category,
           quiz_img,
           description,
           username,
+          user_id,
         ]
       )
     );
@@ -171,11 +187,12 @@ const seed = async ({
     );
 
     const insertLikesQueryStr = format(
-      `INSERT INTO likes (content_id, content_type, user_id) VALUES %L`,
-      likesData.map(({ content_id, content_type, user_id }) => [
+      `INSERT INTO likes (content_id, content_type, user_id, like_value) VALUES %L`,
+      likesData.map(({ content_id, content_type, user_id, like_value }) => [
         content_id,
         content_type,
         user_id,
+        like_value,
       ])
     );
     const insertLikesPromise = db.query(insertLikesQueryStr);
@@ -216,6 +233,7 @@ const seed = async ({
         user_id,
       ])
     );
+
     await db.query(insertCommentsQueryStr);
   } catch (err) {
     console.error("Error seeding --->>>", err);

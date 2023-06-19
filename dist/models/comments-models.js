@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.fetchQuizComments = void 0;
+exports.insertComment = exports.fetchQuizComments = void 0;
 const connection_1 = __importDefault(require("../connection"));
 const fetchQuizComments = (quiz_id, limit = "10", page = "1") => __awaiter(void 0, void 0, void 0, function* () {
     const isNumber = /^[0-9]+$/;
@@ -37,3 +37,30 @@ const fetchQuizComments = (quiz_id, limit = "10", page = "1") => __awaiter(void 
     return { comments, totalCount };
 });
 exports.fetchQuizComments = fetchQuizComments;
+const insertComment = (quiz_id, comment, user) => __awaiter(void 0, void 0, void 0, function* () {
+    const { comment_text } = comment;
+    const { username, user_id } = user;
+    const isNumber = /^[0-9]+$/;
+    if (!isNumber.test(quiz_id)) {
+        throw { status: 400, msg: "Invalid quiz_id specified" };
+    }
+    else if (!Object.keys(comment).length) {
+        throw { status: 400, msg: "Empty comment object" };
+    }
+    else if (!comment_text) {
+        throw { status: 400, msg: "comment_text is required" };
+    }
+    const insertCommentQueryStr = `
+  INSERT INTO comments (quiz_id, comment_text, username, user_id) 
+  VALUES ($1, $2, $3, $4) RETURNING *
+  `;
+    const insertCommentResponse = yield connection_1.default.query(insertCommentQueryStr, [
+        quiz_id,
+        comment_text,
+        username,
+        user_id,
+    ]);
+    const insertedCommentObj = insertCommentResponse.rows[0];
+    return insertedCommentObj;
+});
+exports.insertComment = insertComment;

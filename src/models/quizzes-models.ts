@@ -1,4 +1,5 @@
 import db from "../connection";
+import { NewQuiz, User } from "../interfaces/interfaces";
 import { formattedQuestionsAndAnswers } from "../utils/quizUtils";
 
 export const fetchQuizzes = async (
@@ -9,10 +10,12 @@ export const fetchQuizzes = async (
   page = "1"
 ) => {
   const queryParams = [];
-  let quizzesQueryStr = `SELECT q.quiz_id, q.quiz_name, q.category, q.quiz_img, q.description, q.username, q.release_date,
-      CAST(COUNT(l.like_id) AS INT) AS likes
-      FROM quizzes q
-      LEFT JOIN likes l ON l.content_id = q.quiz_id AND l.content_type = 'quiz'`;
+  let quizzesQueryStr = `
+    SELECT q.quiz_id, q.quiz_name, q.category, q.quiz_img, q.description, q.username,q.user_id, q.release_date,
+    CAST(COALESCE(SUM(l.like_value), 0) AS INT) AS likes
+    FROM quizzes q
+    LEFT JOIN likes l ON l.content_id = q.quiz_id AND l.content_type = 'quiz'
+    `;
 
   const validSortBy = ["quiz_name", "category", "release_date", "likes"];
   const validOrderBy = ["desc", "asc"];
@@ -65,14 +68,16 @@ export const fetchQuiz = async (quiz_id: string) => {
     throw { status: 400, msg: "Invalid quiz_id specified" };
   }
 
-  const quizQueryStr = `SELECT q.quiz_id, q.quiz_name, q.description, q.quiz_img, q.category, q.username, q.release_date,
-  CAST(COUNT(l.like_id) AS INT) AS likes,
+  const quizQueryStr = `
+  SELECT q.quiz_id, q.quiz_name, q.description, q.quiz_img, q.category,q.user_id, q.username, q.release_date,
+  CAST(COALESCE(SUM(l.like_value), 0) AS INT) AS likes,
   CAST(COUNT(c.comment_id) AS INT) AS comment_count
   FROM quizzes q
   LEFT JOIN likes l ON l.content_id = q.quiz_id AND l.content_type = 'quiz'
   LEFT JOIN comments c ON c.quiz_id = q.quiz_id
   WHERE q.quiz_id = $1
-  GROUP BY q.quiz_id;`;
+  GROUP BY q.quiz_id;
+  `;
 
   const quizQueryResponse = await db.query(quizQueryStr, [quiz_id]);
   const quizInfo = quizQueryResponse.rows[0];
@@ -81,10 +86,12 @@ export const fetchQuiz = async (quiz_id: string) => {
     throw { status: 404, msg: "quiz_id not found" };
   }
 
-  const answersAndQuestionsQuery = `SELECT a.answer_id, a.question_id, a.answer_text, a.is_correct, q.question_text
+  const answersAndQuestionsQuery = `
+  SELECT a.answer_id, a.question_id, a.answer_text, a.is_correct, q.question_text
   FROM answers a
   JOIN questions q ON a.question_id = q.question_id
-  WHERE q.quiz_id = $1`;
+  WHERE q.quiz_id = $1
+  `;
 
   const answersAndQuestionsResponse = await db.query(answersAndQuestionsQuery, [
     quiz_id,
@@ -111,4 +118,139 @@ export const checkQuizIsValid = async (quiz_id: string) => {
   }
 
   return foundQuiz;
+};
+
+export const insertQuiz = async (quiz: NewQuiz, user: User) => {
+  const { quiz_name, category, description, quiz_img, questions } = quiz;
+  const { username, user_id } = user;
+
+  if (!Object.keys(quiz).length) {
+    throw { status: 400, msg: "Empty quiz object" };
+  } else if (!questions) {
+    throw { status: 400, msg: "Quiz questions are required" };
+  } else if (questions.length < 8) {
+    throw { status: 400, msg: "Quiz must have at least 8 questions" };
+  } else if (questions.length > 16) {
+    throw { status: 400, msg: "Maximum limit of 16 questions exceeded" };
+  }
+
+  const insertQuizQuery = `
+    INSERT INTO quizzes (quiz_name, category, username, user_id, description, quiz_img)
+    VALUES ($1, $2, $3, $4, $5, $6)
+    RETURNING *
+  `;
+
+  const quizQueryResponse = await db.query(insertQuizQuery, [
+    quiz_name,
+    category,
+    username,
+    user_id,
+    description,
+    quiz_img,
+  ]);
+
+  const insertedQuizObj = quizQueryResponse.rows[0];
+
+  const selectQuizStr = `
+  SELECT q.quiz_id, q.quiz_name, q.description, q.quiz_img, q.category, q.username,q.user_id, q.release_date,
+  CAST(COALESCE(SUM(l.like_value), 0) AS INT) AS likes,
+  CAST(COUNT(c.comment_id) AS INT) AS comment_count
+  FROM quizzes q
+  LEFT JOIN likes l ON l.content_id = q.quiz_id AND l.content_type = 'quiz'
+  LEFT JOIN comments c ON c.quiz_id = q.quiz_id
+  WHERE q.quiz_id = $1
+  GROUP BY q.quiz_id
+  `;
+
+  const quizInfo = await db.query(selectQuizStr, [insertedQuizObj.quiz_id]);
+  const insertedQuiz = quizInfo.rows[0];
+
+  insertedQuiz.questions = [];
+  const quizId = insertedQuiz.quiz_id;
+
+  for (let i = 0; i < questions.length; i++) {
+    const question = questions[i];
+    const { question_text, answers } = question;
+
+    if (!question_text || !answers.length) {
+      throw { status: 400, msg: "Quiz questions and answers are required" };
+    } else if (answers.length !== 4) {
+      throw { status: 400, msg: "Each question must have 4 answer options" };
+    }
+
+    const insertQuestionQuery = `
+      INSERT INTO questions (quiz_id, question_text)
+      VALUES ($1, $2)
+      RETURNING *
+    `;
+
+    const questionQueryResponse = await db.query(insertQuestionQuery, [
+      quizId,
+      question_text,
+    ]);
+
+    const insertedQuestion = questionQueryResponse.rows[0];
+    const questionId = insertedQuestion.question_id;
+
+    const newAnswers = [];
+
+    let hasCorrectAnswer = false;
+    let correctAnswerCount = 0;
+
+    for (let j = 0; j < answers.length; j++) {
+      const answer = answers[j];
+      const { answer_text, is_correct } = answer;
+
+      const insertAnswerQuery = `
+        INSERT INTO answers (question_id, answer_text, is_correct)
+        VALUES ($1, $2, $3)
+        RETURNING *
+      `;
+
+      const answerQueryResponse = await db.query(insertAnswerQuery, [
+        questionId,
+        answer_text,
+        is_correct,
+      ]);
+
+      const insertedAnswer = answerQueryResponse.rows[0];
+      const newAnswer = {
+        answer_id: insertedAnswer.answer_id,
+        answer_text: insertedAnswer.answer_text,
+        is_correct: insertedAnswer.is_correct,
+      };
+      newAnswers.push(newAnswer);
+
+      if (is_correct) {
+        correctAnswerCount++;
+      }
+
+      if (is_correct && !hasCorrectAnswer) {
+        hasCorrectAnswer = true;
+      } else if (is_correct && hasCorrectAnswer) {
+        throw {
+          status: 400,
+          msg: "Each question can have only one correct answer",
+        };
+      }
+
+      if (correctAnswerCount !== 1) {
+        throw {
+          status: 400,
+          msg: "Each question must have exactly one correct answer",
+        };
+      }
+    }
+
+    const newQuestion = {
+      question_id: insertedQuestion.question_id,
+      quiz_id: insertedQuestion.quiz_id,
+      question_text: insertedQuestion.question_text,
+      answers: newAnswers,
+    };
+
+    insertedQuiz.questions.push(newQuestion);
+  }
+
+  return insertedQuiz;
 };
