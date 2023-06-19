@@ -1,6 +1,8 @@
 import { Request, Response, NextFunction } from "express";
 import { checkCategory } from "../models/categories-models";
-import { fetchQuiz, fetchQuizzes } from "../models/quizzes-models";
+import { fetchQuiz, fetchQuizzes, insertQuiz } from "../models/quizzes-models";
+import passport from "../passport-config";
+import { User } from "../interfaces/interfaces";
 
 export const getQuizzes = async (
   req: Request,
@@ -59,4 +61,27 @@ export const getQuiz = async (
   } catch (err) {
     next(err);
   }
+};
+
+export const postQuiz = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  passport.authenticate(
+    "jwt",
+    { session: false },
+    async (err: Error, user: User, info: any) => {
+      try {
+        if (err || !user) {
+          return res.status(401).send({ msg: "Unauthorized" });
+        }
+        const newQuiz = req.body;
+        const addedQuiz = await insertQuiz(newQuiz, user);
+        res.status(201).send({ addedQuiz });
+      } catch (err) {
+        next(err);
+      }
+    }
+  )(req, res, next);
 };

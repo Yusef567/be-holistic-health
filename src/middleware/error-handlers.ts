@@ -8,8 +8,27 @@ export const handlePSQL400sErrors = (
 ) => {
   if (err.code === "23505" && err.constraint === "users_username_key") {
     res.status(409).send({ msg: "Username already exists" });
+  } else if (err.code === "23505") {
+    res.status(409).send({ msg: "Duplicate value already exists" });
   } else if (err.code === "22P02") {
     res.status(400).send({ msg: "Invalid value specified" });
+  } else if (err.code === "23502" && err.column) {
+    const { column } = err;
+    res.status(400).send({ msg: `${column} is required` });
+  } else if (err.code === "23502") {
+    res.status(400).send({ msg: "Required value is missing" });
+  } else if (
+    err.code === "23503" &&
+    err.constraint === "quizzes_category_fkey"
+  ) {
+    res.status(404).send({ msg: "Category not found" });
+  } else if (
+    err.code === "23503" &&
+    err.constraint === "quizzes_username_fkey"
+  ) {
+    res.status(404).send({ msg: "Username not found" });
+  } else if (err.code === "23503") {
+    res.status(404).send({ msg: "Referenced record not found" });
   } else {
     next(err);
   }

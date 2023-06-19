@@ -311,6 +311,7 @@ describe("GET /api/quizzes", () => {
                 category: expect.any(String),
                 description: expect.any(String),
                 username: expect.any(String),
+                user_id: expect.any(Number),
                 release_date: expect.any(String),
                 likes: expect.any(Number),
             });
@@ -530,6 +531,7 @@ describe("GET /api/quizzes/:quiz_id", () => {
             quiz_id: 4,
             quiz_name: "Travel Destinations Trivia",
             category: "Travel",
+            user_id: 1,
             username: "Tom123",
             release_date: expect.any(String),
             description: "Test your knowledge of popular travel destinations around the world with this trivia quiz.",
@@ -644,4 +646,797 @@ describe("GET /api/quizzes/:quiz_id/comments", () => {
             expect(msg).toBe("Invalid page query specified");
         }));
     });
+});
+function testProtectedEndpoint(endpoint, method) {
+    const request = require("supertest");
+    it("401: should respond with a msg of Unauthorized if the JWT access token is invalid", () => __awaiter(this, void 0, void 0, function* () {
+        const invalidToken = "helloWorld";
+        const { body: { msg }, } = yield request(app_1.default)[method](endpoint)
+            .set("Authorization", `Bearer ${invalidToken}`)
+            .expect(401);
+        expect(msg).toBe("Unauthorized");
+    }));
+    it("401: should respond a msg of Unauthorized if the JWT access token is missing", () => __awaiter(this, void 0, void 0, function* () {
+        const { body: { msg }, } = yield request(app_1.default)[method](endpoint)
+            .set("Authorization", "Bearer")
+            .expect(401);
+        expect(msg).toBe("Unauthorized");
+    }));
+    it("401: should respond with a msg of Unauthorized if the JWT access token has expired", () => __awaiter(this, void 0, void 0, function* () {
+        const expiredAccessToken = jsonwebtoken_1.default.sign({ id: 2 }, process.env.JWT_SECRET, {
+            expiresIn: "1ms",
+        });
+        const { body: { msg }, } = yield request(app_1.default)[method](endpoint)
+            .set("Authorization", `Bearer ${expiredAccessToken}`)
+            .expect(401);
+        expect(msg).toBe("Unauthorized");
+    }));
+}
+describe("POST /api/quizzes", () => {
+    testProtectedEndpoint("/api/quizzes", "post");
+    it("201: should respond with the newly created quiz object", () => __awaiter(void 0, void 0, void 0, function* () {
+        const questionsAndAnswersResponse = [
+            {
+                question_id: 81,
+                quiz_id: 11,
+                question_text: "Which city is known as the 'Eternal City'?",
+                answers: [
+                    { answer_id: 321, answer_text: "Rome", is_correct: true },
+                    { answer_id: 322, answer_text: "Paris", is_correct: false },
+                    { answer_id: 323, answer_text: "Athens", is_correct: false },
+                    { answer_id: 324, answer_text: "Cairo", is_correct: false },
+                ],
+            },
+            {
+                question_id: 82,
+                quiz_id: 11,
+                question_text: "What is the largest island in the Mediterranean Sea?",
+                answers: [
+                    { answer_id: 325, answer_text: "Sicily", is_correct: true },
+                    { answer_id: 326, answer_text: "Crete", is_correct: false },
+                    { answer_id: 327, answer_text: "Corsica", is_correct: false },
+                    { answer_id: 328, answer_text: "Malta", is_correct: false },
+                ],
+            },
+            {
+                question_id: 83,
+                quiz_id: 11,
+                question_text: "In which country can you visit the Acropolis?",
+                answers: [
+                    { answer_id: 329, answer_text: "Greece", is_correct: true },
+                    { answer_id: 330, answer_text: "Italy", is_correct: false },
+                    { answer_id: 331, answer_text: "Spain", is_correct: false },
+                    { answer_id: 332, answer_text: "Turkey", is_correct: false },
+                ],
+            },
+            {
+                question_id: 84,
+                quiz_id: 11,
+                question_text: "Which country is famous for the Great Barrier Reef?",
+                answers: [
+                    { answer_id: 333, answer_text: "Australia", is_correct: true },
+                    { answer_id: 334, answer_text: "Mexico", is_correct: false },
+                    { answer_id: 335, answer_text: "Thailand", is_correct: false },
+                    { answer_id: 336, answer_text: "Brazil", is_correct: false },
+                ],
+            },
+            {
+                question_id: 85,
+                quiz_id: 11,
+                question_text: "What is the capital city of Canada?",
+                answers: [
+                    { answer_id: 337, answer_text: "Ottawa", is_correct: true },
+                    { answer_id: 338, answer_text: "Toronto", is_correct: false },
+                    { answer_id: 339, answer_text: "Montreal", is_correct: false },
+                    { answer_id: 340, answer_text: "Vancouver", is_correct: false },
+                ],
+            },
+            {
+                question_id: 86,
+                quiz_id: 11,
+                question_text: "Which city is known for its famous Golden Gate Bridge?",
+                answers: [
+                    { answer_id: 341, answer_text: "San Francisco", is_correct: true },
+                    { answer_id: 342, answer_text: "New York City", is_correct: false },
+                    { answer_id: 343, answer_text: "Los Angeles", is_correct: false },
+                    { answer_id: 344, answer_text: "Seattle", is_correct: false },
+                ],
+            },
+            {
+                question_id: 87,
+                quiz_id: 11,
+                question_text: "What is the official language of Switzerland?",
+                answers: [
+                    { answer_id: 345, answer_text: "German", is_correct: true },
+                    { answer_id: 346, answer_text: "French", is_correct: false },
+                    { answer_id: 347, answer_text: "Italian", is_correct: false },
+                    { answer_id: 348, answer_text: "Romansh", is_correct: false },
+                ],
+            },
+            {
+                question_id: 88,
+                quiz_id: 11,
+                question_text: "Which continent is the largest in terms of land area?",
+                answers: [
+                    { answer_id: 349, answer_text: "Asia", is_correct: true },
+                    { answer_id: 350, answer_text: "Africa", is_correct: false },
+                    { answer_id: 351, answer_text: "North America", is_correct: false },
+                    { answer_id: 352, answer_text: "South America", is_correct: false },
+                ],
+            },
+        ];
+        const newQuizResponse = {
+            quiz_id: 11,
+            quiz_name: "Travel Destinations Trivia",
+            category: "Travel",
+            user_id: 2,
+            username: "Alex456",
+            release_date: expect.any(String),
+            description: "Test your knowledge of popular travel destinations around the world with this trivia quiz.",
+            quiz_img: "https://images.pexels.com/photos/1117132/pexels-photo-1117132.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
+            likes: 0,
+            comment_count: 0,
+            questions: [...questionsAndAnswersResponse],
+        };
+        const questionsAndAnswersRequest = [
+            {
+                question_text: "Which city is known as the 'Eternal City'?",
+                answers: [
+                    { answer_text: "Rome", is_correct: true },
+                    { answer_text: "Paris", is_correct: false },
+                    { answer_text: "Athens", is_correct: false },
+                    { answer_text: "Cairo", is_correct: false },
+                ],
+            },
+            {
+                question_text: "What is the largest island in the Mediterranean Sea?",
+                answers: [
+                    { answer_text: "Sicily", is_correct: true },
+                    { answer_text: "Crete", is_correct: false },
+                    { answer_text: "Corsica", is_correct: false },
+                    { answer_text: "Malta", is_correct: false },
+                ],
+            },
+            {
+                question_text: "In which country can you visit the Acropolis?",
+                answers: [
+                    { answer_text: "Greece", is_correct: true },
+                    { answer_text: "Italy", is_correct: false },
+                    { answer_text: "Spain", is_correct: false },
+                    { answer_text: "Turkey", is_correct: false },
+                ],
+            },
+            {
+                question_text: "Which country is famous for the Great Barrier Reef?",
+                answers: [
+                    { answer_text: "Australia", is_correct: true },
+                    { answer_text: "Mexico", is_correct: false },
+                    { answer_text: "Thailand", is_correct: false },
+                    { answer_text: "Brazil", is_correct: false },
+                ],
+            },
+            {
+                question_text: "What is the capital city of Canada?",
+                answers: [
+                    { answer_text: "Ottawa", is_correct: true },
+                    { answer_text: "Toronto", is_correct: false },
+                    { answer_text: "Montreal", is_correct: false },
+                    { answer_text: "Vancouver", is_correct: false },
+                ],
+            },
+            {
+                question_text: "Which city is known for its famous Golden Gate Bridge?",
+                answers: [
+                    { answer_text: "San Francisco", is_correct: true },
+                    { answer_text: "New York City", is_correct: false },
+                    { answer_text: "Los Angeles", is_correct: false },
+                    { answer_text: "Seattle", is_correct: false },
+                ],
+            },
+            {
+                question_text: "What is the official language of Switzerland?",
+                answers: [
+                    { answer_text: "German", is_correct: true },
+                    { answer_text: "French", is_correct: false },
+                    { answer_text: "Italian", is_correct: false },
+                    { answer_text: "Romansh", is_correct: false },
+                ],
+            },
+            {
+                question_text: "Which continent is the largest in terms of land area?",
+                answers: [
+                    { answer_text: "Asia", is_correct: true },
+                    { answer_text: "Africa", is_correct: false },
+                    { answer_text: "North America", is_correct: false },
+                    { answer_text: "South America", is_correct: false },
+                ],
+            },
+        ];
+        const newQuiz = {
+            quiz_name: "Travel Destinations Trivia",
+            category: "Travel",
+            description: "Test your knowledge of popular travel destinations around the world with this trivia quiz.",
+            quiz_img: "https://images.pexels.com/photos/1117132/pexels-photo-1117132.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
+            questions: [...questionsAndAnswersRequest],
+        };
+        const { body } = yield (0, supertest_1.default)(app_1.default)
+            .post("/api/quizzes")
+            .set("Authorization", `Bearer ${accessToken}`)
+            .send(newQuiz)
+            .expect(201);
+        const { addedQuiz } = body;
+        expect(addedQuiz).toEqual(newQuizResponse);
+    }));
+    it("400: should respond with a msg if passed a quiz missing a required property", () => __awaiter(void 0, void 0, void 0, function* () {
+        const questionsAndAnswersRequest = [
+            {
+                question_text: "Which city is known as the 'Eternal City'?",
+                answers: [
+                    { answer_text: "Rome", is_correct: true },
+                    { answer_text: "Paris", is_correct: false },
+                    { answer_text: "Athens", is_correct: false },
+                    { answer_text: "Cairo", is_correct: false },
+                ],
+            },
+            {
+                question_text: "What is the largest island in the Mediterranean Sea?",
+                answers: [
+                    { answer_text: "Sicily", is_correct: true },
+                    { answer_text: "Crete", is_correct: false },
+                    { answer_text: "Corsica", is_correct: false },
+                    { answer_text: "Malta", is_correct: false },
+                ],
+            },
+            {
+                question_text: "In which country can you visit the Acropolis?",
+                answers: [
+                    { answer_text: "Greece", is_correct: true },
+                    { answer_text: "Italy", is_correct: false },
+                    { answer_text: "Spain", is_correct: false },
+                    { answer_text: "Turkey", is_correct: false },
+                ],
+            },
+            {
+                question_text: "Which country is famous for the Great Barrier Reef?",
+                answers: [
+                    { answer_text: "Australia", is_correct: true },
+                    { answer_text: "Mexico", is_correct: false },
+                    { answer_text: "Thailand", is_correct: false },
+                    { answer_text: "Brazil", is_correct: false },
+                ],
+            },
+            {
+                question_text: "What is the capital city of Canada?",
+                answers: [
+                    { answer_text: "Ottawa", is_correct: true },
+                    { answer_text: "Toronto", is_correct: false },
+                    { answer_text: "Montreal", is_correct: false },
+                    { answer_text: "Vancouver", is_correct: false },
+                ],
+            },
+            {
+                question_text: "Which city is known for its famous Golden Gate Bridge?",
+                answers: [
+                    { answer_text: "San Francisco", is_correct: true },
+                    { answer_text: "New York City", is_correct: false },
+                    { answer_text: "Los Angeles", is_correct: false },
+                    { answer_text: "Seattle", is_correct: false },
+                ],
+            },
+            {
+                question_text: "What is the official language of Switzerland?",
+                answers: [
+                    { answer_text: "German", is_correct: true },
+                    { answer_text: "French", is_correct: false },
+                    { answer_text: "Italian", is_correct: false },
+                    { answer_text: "Romansh", is_correct: false },
+                ],
+            },
+            {
+                question_text: "Which continent is the largest in terms of land area?",
+                answers: [
+                    { answer_text: "Asia", is_correct: true },
+                    { answer_text: "Africa", is_correct: false },
+                    { answer_text: "North America", is_correct: false },
+                    { answer_text: "South America", is_correct: false },
+                ],
+            },
+        ];
+        const newQuiz = {
+            quiz_name: "Travel Destinations Trivia",
+            description: "Test your knowledge of popular travel destinations around the world with this trivia quiz.",
+            quiz_img: "https://images.pexels.com/photos/1117132/pexels-photo-1117132.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
+            questions: [...questionsAndAnswersRequest],
+        };
+        const { body: { msg }, } = yield (0, supertest_1.default)(app_1.default)
+            .post("/api/quizzes")
+            .set("Authorization", `Bearer ${accessToken}`)
+            .send(newQuiz)
+            .expect(400);
+        expect(msg).toBe("category is required");
+    }));
+    it("400: should respond with a msg if passed a quiz that has less than 8 questions", () => __awaiter(void 0, void 0, void 0, function* () {
+        const questionsAndAnswersRequest = [
+            {
+                question_text: "Which city is known as the 'Eternal City'?",
+                answers: [
+                    { answer_text: "Rome", is_correct: true },
+                    { answer_text: "Paris", is_correct: false },
+                    { answer_text: "Athens", is_correct: false },
+                    { answer_text: "Cairo", is_correct: false },
+                ],
+            },
+            {
+                question_text: "What is the largest island in the Mediterranean Sea?",
+                answers: [
+                    { answer_text: "Sicily", is_correct: true },
+                    { answer_text: "Crete", is_correct: false },
+                    { answer_text: "Corsica", is_correct: false },
+                    { answer_text: "Malta", is_correct: false },
+                ],
+            },
+            {
+                question_text: "In which country can you visit the Acropolis?",
+                answers: [
+                    { answer_text: "Greece", is_correct: true },
+                    { answer_text: "Italy", is_correct: false },
+                    { answer_text: "Spain", is_correct: false },
+                    { answer_text: "Turkey", is_correct: false },
+                ],
+            },
+            {
+                question_text: "Which country is famous for the Great Barrier Reef?",
+                answers: [
+                    { answer_text: "Australia", is_correct: true },
+                    { answer_text: "Mexico", is_correct: false },
+                    { answer_text: "Thailand", is_correct: false },
+                    { answer_text: "Brazil", is_correct: false },
+                ],
+            },
+            {
+                question_text: "What is the capital city of Canada?",
+                answers: [
+                    { answer_text: "Ottawa", is_correct: true },
+                    { answer_text: "Toronto", is_correct: false },
+                    { answer_text: "Montreal", is_correct: false },
+                    { answer_text: "Vancouver", is_correct: false },
+                ],
+            },
+        ];
+        const newQuiz = {
+            quiz_name: "Travel Destinations Trivia",
+            category: "Travel",
+            description: "Test your knowledge of popular travel destinations around the world with this trivia quiz.",
+            quiz_img: "https://images.pexels.com/photos/1117132/pexels-photo-1117132.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
+            questions: [...questionsAndAnswersRequest],
+        };
+        const { body: { msg }, } = yield (0, supertest_1.default)(app_1.default)
+            .post("/api/quizzes")
+            .set("Authorization", `Bearer ${accessToken}`)
+            .send(newQuiz)
+            .expect(400);
+        expect(msg).toBe("Quiz must have at least 8 questions");
+    }));
+    it("400: should should respond with a msg if passed an empty quiz object", () => __awaiter(void 0, void 0, void 0, function* () {
+        const { body: { msg }, } = yield (0, supertest_1.default)(app_1.default)
+            .post("/api/quizzes")
+            .set("Authorization", `Bearer ${accessToken}`)
+            .send({})
+            .expect(400);
+        expect(msg).toBe("Empty quiz object");
+    }));
+    it("400: should respond with a msg if passed an incorrect number of answers for a question", () => __awaiter(void 0, void 0, void 0, function* () {
+        const questionsAndAnswersRequest = [
+            {
+                question_text: "Which city is known as the 'Eternal City'?",
+                answers: [
+                    { answer_text: "Rome", is_correct: true },
+                    { answer_text: "Paris", is_correct: false },
+                    { answer_text: "Athens", is_correct: false },
+                ],
+            },
+            {
+                question_text: "What is the largest island in the Mediterranean Sea?",
+                answers: [
+                    { answer_text: "Sicily", is_correct: true },
+                    { answer_text: "Crete", is_correct: false },
+                ],
+            },
+            {
+                question_text: "In which country can you visit the Acropolis?",
+                answers: [
+                    { answer_text: "Greece", is_correct: true },
+                    { answer_text: "Italy", is_correct: false },
+                    { answer_text: "Spain", is_correct: false },
+                    { answer_text: "Turkey", is_correct: false },
+                ],
+            },
+            {
+                question_text: "Which country is famous for the Great Barrier Reef?",
+                answers: [
+                    { answer_text: "Australia", is_correct: true },
+                    { answer_text: "Mexico", is_correct: false },
+                    { answer_text: "Thailand", is_correct: false },
+                    { answer_text: "Brazil", is_correct: false },
+                ],
+            },
+            {
+                question_text: "What is the capital city of Canada?",
+                answers: [
+                    { answer_text: "Ottawa", is_correct: true },
+                    { answer_text: "Toronto", is_correct: false },
+                    { answer_text: "Montreal", is_correct: false },
+                    { answer_text: "Vancouver", is_correct: false },
+                ],
+            },
+            {
+                question_text: "Which city is known for its famous Golden Gate Bridge?",
+                answers: [
+                    { answer_text: "San Francisco", is_correct: true },
+                    { answer_text: "New York City", is_correct: false },
+                    { answer_text: "Los Angeles", is_correct: false },
+                    { answer_text: "Seattle", is_correct: false },
+                ],
+            },
+            {
+                question_text: "What is the official language of Switzerland?",
+                answers: [
+                    { answer_text: "German", is_correct: true },
+                    { answer_text: "French", is_correct: false },
+                ],
+            },
+            {
+                question_text: "Which continent is the largest in terms of land area?",
+                answers: [
+                    { answer_text: "Asia", is_correct: true },
+                    { answer_text: "Africa", is_correct: false },
+                    { answer_text: "North America", is_correct: false },
+                    { answer_text: "South America", is_correct: false },
+                ],
+            },
+        ];
+        const newQuiz = {
+            quiz_name: "Travel Destinations Trivia",
+            category: "Travel",
+            description: "Test your knowledge of popular travel destinations around the world with this trivia quiz.",
+            quiz_img: "https://images.pexels.com/photos/1117132/pexels-photo-1117132.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
+            questions: [...questionsAndAnswersRequest],
+        };
+        const { body: { msg }, } = yield (0, supertest_1.default)(app_1.default)
+            .post("/api/quizzes")
+            .set("Authorization", `Bearer ${accessToken}`)
+            .send(newQuiz)
+            .expect(400);
+        expect(msg).toBe("Each question must have 4 answer options");
+    }));
+    it("400: should respond with a msg if passed a question that has more than one correct answer", () => __awaiter(void 0, void 0, void 0, function* () {
+        const questionsAndAnswersRequest = [
+            {
+                question_text: "Which city is known as the 'Eternal City'?",
+                answers: [
+                    { answer_text: "Rome", is_correct: true },
+                    { answer_text: "Paris", is_correct: false },
+                    { answer_text: "Athens", is_correct: false },
+                    { answer_text: "Cairo", is_correct: false },
+                ],
+            },
+            {
+                question_text: "What is the largest island in the Mediterranean Sea?",
+                answers: [
+                    { answer_text: "Sicily", is_correct: true },
+                    { answer_text: "Crete", is_correct: false },
+                    { answer_text: "Corsica", is_correct: false },
+                    { answer_text: "Malta", is_correct: false },
+                ],
+            },
+            {
+                question_text: "In which country can you visit the Acropolis?",
+                answers: [
+                    { answer_text: "Greece", is_correct: true },
+                    { answer_text: "Italy", is_correct: false },
+                    { answer_text: "Spain", is_correct: true },
+                    { answer_text: "Turkey", is_correct: false },
+                ],
+            },
+            {
+                question_text: "Which country is famous for the Great Barrier Reef?",
+                answers: [
+                    { answer_text: "Australia", is_correct: true },
+                    { answer_text: "Mexico", is_correct: false },
+                    { answer_text: "Thailand", is_correct: false },
+                    { answer_text: "Brazil", is_correct: false },
+                ],
+            },
+            {
+                question_text: "What is the capital city of Canada?",
+                answers: [
+                    { answer_text: "Ottawa", is_correct: true },
+                    { answer_text: "Toronto", is_correct: false },
+                    { answer_text: "Montreal", is_correct: true },
+                    { answer_text: "Vancouver", is_correct: false },
+                ],
+            },
+            {
+                question_text: "Which city is known for its famous Golden Gate Bridge?",
+                answers: [
+                    { answer_text: "San Francisco", is_correct: true },
+                    { answer_text: "New York City", is_correct: false },
+                    { answer_text: "Los Angeles", is_correct: false },
+                    { answer_text: "Seattle", is_correct: false },
+                ],
+            },
+            {
+                question_text: "What is the official language of Switzerland?",
+                answers: [
+                    { answer_text: "German", is_correct: true },
+                    { answer_text: "French", is_correct: false },
+                    { answer_text: "Italian", is_correct: false },
+                    { answer_text: "Romansh", is_correct: false },
+                ],
+            },
+            {
+                question_text: "Which continent is the largest in terms of land area?",
+                answers: [
+                    { answer_text: "Asia", is_correct: true },
+                    { answer_text: "Africa", is_correct: false },
+                    { answer_text: "North America", is_correct: false },
+                    { answer_text: "South America", is_correct: false },
+                ],
+            },
+        ];
+        const newQuiz = {
+            quiz_name: "Travel Destinations Trivia",
+            category: "Travel",
+            description: "Test your knowledge of popular travel destinations around the world with this trivia quiz.",
+            quiz_img: "https://images.pexels.com/photos/1117132/pexels-photo-1117132.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
+            questions: [...questionsAndAnswersRequest],
+        };
+        const { body: { msg }, } = yield (0, supertest_1.default)(app_1.default)
+            .post("/api/quizzes")
+            .set("Authorization", `Bearer ${accessToken}`)
+            .send(newQuiz)
+            .expect(400);
+        expect(msg).toBe("Each question can have only one correct answer");
+    }));
+    it("400: should repsond with a msg if passed a question that has no correct answer", () => __awaiter(void 0, void 0, void 0, function* () {
+        const questionsAndAnswersRequest = [
+            {
+                question_text: "Which city is known as the 'Eternal City'?",
+                answers: [
+                    { answer_text: "Rome", is_correct: false },
+                    { answer_text: "Paris", is_correct: false },
+                    { answer_text: "Athens", is_correct: false },
+                    { answer_text: "Cairo", is_correct: false },
+                ],
+            },
+            {
+                question_text: "What is the largest island in the Mediterranean Sea?",
+                answers: [
+                    { answer_text: "Sicily", is_correct: true },
+                    { answer_text: "Crete", is_correct: false },
+                    { answer_text: "Corsica", is_correct: false },
+                    { answer_text: "Malta", is_correct: false },
+                ],
+            },
+            {
+                question_text: "In which country can you visit the Acropolis?",
+                answers: [
+                    { answer_text: "Greece", is_correct: false },
+                    { answer_text: "Italy", is_correct: false },
+                    { answer_text: "Spain", is_correct: false },
+                    { answer_text: "Turkey", is_correct: false },
+                ],
+            },
+            {
+                question_text: "Which country is famous for the Great Barrier Reef?",
+                answers: [
+                    { answer_text: "Australia", is_correct: false },
+                    { answer_text: "Mexico", is_correct: false },
+                    { answer_text: "Thailand", is_correct: false },
+                    { answer_text: "Brazil", is_correct: false },
+                ],
+            },
+            {
+                question_text: "What is the capital city of Canada?",
+                answers: [
+                    { answer_text: "Ottawa", is_correct: true },
+                    { answer_text: "Toronto", is_correct: false },
+                    { answer_text: "Montreal", is_correct: false },
+                    { answer_text: "Vancouver", is_correct: false },
+                ],
+            },
+            {
+                question_text: "Which city is known for its famous Golden Gate Bridge?",
+                answers: [
+                    { answer_text: "San Francisco", is_correct: true },
+                    { answer_text: "New York City", is_correct: false },
+                    { answer_text: "Los Angeles", is_correct: false },
+                    { answer_text: "Seattle", is_correct: false },
+                ],
+            },
+            {
+                question_text: "What is the official language of Switzerland?",
+                answers: [
+                    { answer_text: "German", is_correct: true },
+                    { answer_text: "French", is_correct: false },
+                    { answer_text: "Italian", is_correct: false },
+                    { answer_text: "Romansh", is_correct: false },
+                ],
+            },
+            {
+                question_text: "Which continent is the largest in terms of land area?",
+                answers: [
+                    { answer_text: "Asia", is_correct: true },
+                    { answer_text: "Africa", is_correct: false },
+                    { answer_text: "North America", is_correct: false },
+                    { answer_text: "South America", is_correct: false },
+                ],
+            },
+        ];
+        const newQuiz = {
+            quiz_name: "Travel Destinations Trivia",
+            category: "Travel",
+            description: "Test your knowledge of popular travel destinations around the world with this trivia quiz.",
+            quiz_img: "https://images.pexels.com/photos/1117132/pexels-photo-1117132.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
+            questions: [...questionsAndAnswersRequest],
+        };
+        const { body: { msg }, } = yield (0, supertest_1.default)(app_1.default)
+            .post("/api/quizzes")
+            .set("Authorization", `Bearer ${accessToken}`)
+            .send(newQuiz)
+            .expect(400);
+        expect(msg).toBe("Each question must have exactly one correct answer");
+    }));
+    it("404: should should respond with a msg if passed a non existent category", () => __awaiter(void 0, void 0, void 0, function* () {
+        const questionsAndAnswersRequest = [
+            {
+                question_text: "Which city is known as the 'Eternal City'?",
+                answers: [
+                    { answer_text: "Rome", is_correct: true },
+                    { answer_text: "Paris", is_correct: false },
+                    { answer_text: "Athens", is_correct: false },
+                    { answer_text: "Cairo", is_correct: false },
+                ],
+            },
+            {
+                question_text: "What is the largest island in the Mediterranean Sea?",
+                answers: [
+                    { answer_text: "Sicily", is_correct: true },
+                    { answer_text: "Crete", is_correct: false },
+                    { answer_text: "Corsica", is_correct: false },
+                    { answer_text: "Malta", is_correct: false },
+                ],
+            },
+            {
+                question_text: "In which country can you visit the Acropolis?",
+                answers: [
+                    { answer_text: "Greece", is_correct: true },
+                    { answer_text: "Italy", is_correct: false },
+                    { answer_text: "Spain", is_correct: false },
+                    { answer_text: "Turkey", is_correct: false },
+                ],
+            },
+            {
+                question_text: "Which country is famous for the Great Barrier Reef?",
+                answers: [
+                    { answer_text: "Australia", is_correct: true },
+                    { answer_text: "Mexico", is_correct: false },
+                    { answer_text: "Thailand", is_correct: false },
+                    { answer_text: "Brazil", is_correct: false },
+                ],
+            },
+            {
+                question_text: "What is the capital city of Canada?",
+                answers: [
+                    { answer_text: "Ottawa", is_correct: true },
+                    { answer_text: "Toronto", is_correct: false },
+                    { answer_text: "Montreal", is_correct: false },
+                    { answer_text: "Vancouver", is_correct: false },
+                ],
+            },
+            {
+                question_text: "Which city is known for its famous Golden Gate Bridge?",
+                answers: [
+                    { answer_text: "San Francisco", is_correct: true },
+                    { answer_text: "New York City", is_correct: false },
+                    { answer_text: "Los Angeles", is_correct: false },
+                    { answer_text: "Seattle", is_correct: false },
+                ],
+            },
+            {
+                question_text: "What is the official language of Switzerland?",
+                answers: [
+                    { answer_text: "German", is_correct: true },
+                    { answer_text: "French", is_correct: false },
+                    { answer_text: "Italian", is_correct: false },
+                    { answer_text: "Romansh", is_correct: false },
+                ],
+            },
+            {
+                question_text: "Which continent is the largest in terms of land area?",
+                answers: [
+                    { answer_text: "Asia", is_correct: true },
+                    { answer_text: "Africa", is_correct: false },
+                    { answer_text: "North America", is_correct: false },
+                    { answer_text: "South America", is_correct: false },
+                ],
+            },
+        ];
+        const newQuiz = {
+            quiz_name: "Travel Destinations Trivia",
+            category: "Food",
+            description: "Test your knowledge of popular travel destinations around the world with this trivia quiz.",
+            quiz_img: "https://images.pexels.com/photos/1117132/pexels-photo-1117132.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
+            questions: [...questionsAndAnswersRequest],
+        };
+        const { body: { msg }, } = yield (0, supertest_1.default)(app_1.default)
+            .post("/api/quizzes")
+            .set("Authorization", `Bearer ${accessToken}`)
+            .send(newQuiz)
+            .expect(404);
+        expect(msg).toBe("Category not found");
+    }));
+});
+describe("POST /api/quizzes/:quiz_id/comments", () => {
+    testProtectedEndpoint("/api/quizzes/6/comments", "post");
+    it("201: should respond with the newly created comment", () => __awaiter(void 0, void 0, void 0, function* () {
+        const newComment = {
+            comment_text: "Great quiz!",
+        };
+        const { body } = yield (0, supertest_1.default)(app_1.default)
+            .post("/api/quizzes/6/comments")
+            .set("Authorization", `Bearer ${accessToken}`)
+            .send(newComment)
+            .expect(201);
+        const { comment } = body;
+        expect(comment).toEqual({
+            comment_id: 16,
+            quiz_id: 6,
+            created_at: expect.any(String),
+            comment_text: "Great quiz!",
+            username: "Alex456",
+            user_id: 2,
+        });
+    }));
+    it("400: should respond with a msg if passed an invalid quiz_id", () => __awaiter(void 0, void 0, void 0, function* () {
+        const newComment = {
+            comment_text: "Great quiz!",
+        };
+        const { body: { msg }, } = yield (0, supertest_1.default)(app_1.default)
+            .post("/api/quizzes/five/comments")
+            .set("Authorization", `Bearer ${accessToken}`)
+            .send(newComment)
+            .expect(400);
+        expect(msg).toBe("Invalid quiz_id specified");
+    }));
+    it("400: should respond with a msg if passed the comment missing a required property", () => __awaiter(void 0, void 0, void 0, function* () {
+        const newComment = {
+            username: "Alex456",
+        };
+        const { body: { msg }, } = yield (0, supertest_1.default)(app_1.default)
+            .post("/api/quizzes/6/comments")
+            .set("Authorization", `Bearer ${accessToken}`)
+            .send(newComment)
+            .expect(400);
+        expect(msg).toBe("comment_text is required");
+    }));
+    it("400: should respond with a msg if passed a comment_text that is a empty string", () => __awaiter(void 0, void 0, void 0, function* () {
+        const newComment = {
+            comment_text: "",
+        };
+        const { body: { msg }, } = yield (0, supertest_1.default)(app_1.default)
+            .post("/api/quizzes/6/comments")
+            .set("Authorization", `Bearer ${accessToken}`)
+            .send(newComment)
+            .expect(400);
+        expect(msg).toBe("comment_text is required");
+    }));
+    it("400: should respond with a msg if passed an empty comment object", () => __awaiter(void 0, void 0, void 0, function* () {
+        const { body: { msg }, } = yield (0, supertest_1.default)(app_1.default)
+            .post("/api/quizzes/6/comments")
+            .set("Authorization", `Bearer ${accessToken}`)
+            .send({})
+            .expect(400);
+        expect(msg).toBe("Empty comment object");
+    }));
 });

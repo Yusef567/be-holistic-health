@@ -1,4 +1,5 @@
 import db from "../connection";
+import { User } from "../interfaces/interfaces";
 
 export const fetchQuizComments = async (
   quiz_id: string,
@@ -35,4 +36,41 @@ export const fetchQuizComments = async (
   const totalCount = Number(totalQueryResponse.rows[0].total_count);
 
   return { comments, totalCount };
+};
+
+interface Comment {
+  comment_text: string;
+}
+
+export const insertComment = async (
+  quiz_id: string,
+  comment: Comment,
+  user: User
+) => {
+  const { comment_text } = comment;
+  const { username, user_id } = user;
+  const isNumber = /^[0-9]+$/;
+
+  if (!isNumber.test(quiz_id)) {
+    throw { status: 400, msg: "Invalid quiz_id specified" };
+  } else if (!Object.keys(comment).length) {
+    throw { status: 400, msg: "Empty comment object" };
+  } else if (!comment_text) {
+    throw { status: 400, msg: "comment_text is required" };
+  }
+
+  const insertCommentQueryStr = `
+  INSERT INTO comments (quiz_id, comment_text, username, user_id) 
+  VALUES ($1, $2, $3, $4) RETURNING *
+  `;
+
+  const insertCommentResponse = await db.query(insertCommentQueryStr, [
+    quiz_id,
+    comment_text,
+    username,
+    user_id,
+  ]);
+
+  const insertedCommentObj = insertCommentResponse.rows[0];
+  return insertedCommentObj;
 };
