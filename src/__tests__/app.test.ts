@@ -694,6 +694,7 @@ describe("GET /api/quizzes/:quiz_id/comments", () => {
         comment_text: expect.any(String),
         username: expect.any(String),
         user_id: expect.any(Number),
+        likes: expect.any(Number),
       });
     });
   });
@@ -1618,6 +1619,7 @@ describe("POST /api/quizzes/:quiz_id/comments", () => {
       comment_text: "Great quiz!",
       username: "Alex456",
       user_id: 2,
+      likes: 0,
     });
   });
   it("400: should respond with a msg if passed an invalid quiz_id", async () => {
@@ -1675,5 +1677,339 @@ describe("POST /api/quizzes/:quiz_id/comments", () => {
       .expect(400);
 
     expect(msg).toBe("Empty comment object");
+  });
+  it("404: should respond with a msg if passed a valid but non existent quiz_id", async () => {
+    const newComment = {
+      comment_text: "Great quiz!",
+    };
+
+    const {
+      body: { msg },
+    } = await request(app)
+      .post("/api/quizzes/20/comments")
+      .set("Authorization", `Bearer ${accessToken}`)
+      .send(newComment)
+      .expect(404);
+
+    expect(msg).toBe("quiz_id not found");
+  });
+});
+
+describe("PATCH /api/quizzes/:quiz_id", () => {
+  testProtectedEndpoint("/api/quizzes/2", "patch");
+  it("201: should respond with the correct likes value (incremented) if the user has not previously voted", async () => {
+    const updatedLikes = {
+      inc_likes: true,
+    };
+
+    const { body } = await request(app)
+      .patch("/api/quizzes/2")
+      .set("Authorization", `Bearer ${accessToken}`)
+      .send(updatedLikes)
+      .expect(201);
+
+    const { quiz } = body;
+    expect(quiz).toMatchObject({
+      likes: 1,
+    });
+  });
+  it("201: should respond with the correct likes value (reduced) if the user has not previously voted", async () => {
+    const updatedLikes = {
+      inc_likes: false,
+    };
+
+    const { body } = await request(app)
+      .patch("/api/quizzes/2")
+      .set("Authorization", `Bearer ${accessToken}`)
+      .send(updatedLikes)
+      .expect(201);
+
+    const { quiz } = body;
+    expect(quiz).toMatchObject({
+      likes: -1,
+    });
+  });
+  it("201: should respond with the correct likes value (reduced) if the user dislikes a quiz they previously liked", async () => {
+    const updatedLikes = {
+      inc_likes: false,
+    };
+
+    const { body } = await request(app)
+      .patch("/api/quizzes/1")
+      .set("Authorization", `Bearer ${accessToken}`)
+      .send(updatedLikes)
+      .expect(201);
+
+    const { quiz } = body;
+    expect(quiz).toMatchObject({
+      likes: 1,
+    });
+  });
+  it("201: should respond with the correct likes value (incremented) if the user likes a quiz they previously disliked", async () => {
+    const updatedLikes = {
+      inc_likes: true,
+    };
+
+    const { body } = await request(app)
+      .patch("/api/quizzes/10")
+      .set("Authorization", `Bearer ${accessToken}`)
+      .send(updatedLikes)
+      .expect(201);
+
+    const { quiz } = body;
+    expect(quiz).toMatchObject({
+      likes: 1,
+    });
+  });
+  it("400: should respond with a msg if passed an invalid quiz_id", async () => {
+    const updatedLikes = {
+      inc_likes: true,
+    };
+
+    const {
+      body: { msg },
+    } = await request(app)
+      .patch("/api/quizzes/two")
+      .set("Authorization", `Bearer ${accessToken}`)
+      .send(updatedLikes)
+      .expect(400);
+
+    expect(msg).toBe("Invalid quiz_id specified");
+  });
+  it("400: should respond with a msg if inc_likes is missing", async () => {
+    const {
+      body: { msg },
+    } = await request(app)
+      .patch("/api/quizzes/2")
+      .set("Authorization", `Bearer ${accessToken}`)
+      .send({})
+      .expect(400);
+
+    expect(msg).toBe("inc_likes is required");
+  });
+  it("400: should respond with a msg if inc_likes is an invalid value", async () => {
+    const updatedLikes = {
+      inc_likes: 5,
+    };
+
+    const {
+      body: { msg },
+    } = await request(app)
+      .patch("/api/quizzes/2")
+      .set("Authorization", `Bearer ${accessToken}`)
+      .send(updatedLikes)
+      .expect(400);
+
+    expect(msg).toBe(
+      "Invalid value for specified inc_likes. Expected true or false"
+    );
+  });
+  it("400: should respond with a msg if the user tries to like a quiz they have already liked", async () => {
+    const updatedLikes = {
+      inc_likes: true,
+    };
+
+    const {
+      body: { msg },
+    } = await request(app)
+      .patch("/api/quizzes/1")
+      .set("Authorization", `Bearer ${accessToken}`)
+      .send(updatedLikes)
+      .expect(400);
+
+    expect(msg).toBe("You have already liked this quiz");
+  });
+  it("400: should respond with a msg if the user tries to dislike a quiz they have already disliked", async () => {
+    const updatedLikes = {
+      inc_likes: false,
+    };
+
+    const {
+      body: { msg },
+    } = await request(app)
+      .patch("/api/quizzes/10")
+      .set("Authorization", `Bearer ${accessToken}`)
+      .send(updatedLikes)
+      .expect(400);
+
+    expect(msg).toBe("You have already disliked this quiz");
+  });
+  it("404: should respond with a msg if passed a valid but non existent quiz_id", async () => {
+    const updatedLikes = {
+      inc_likes: true,
+    };
+
+    const {
+      body: { msg },
+    } = await request(app)
+      .patch("/api/quizzes/20")
+      .set("Authorization", `Bearer ${accessToken}`)
+      .send(updatedLikes)
+      .expect(404);
+
+    expect(msg).toBe("quiz_id not found");
+  });
+});
+
+describe("PATCH /api/comments/:comment_id", () => {
+  testProtectedEndpoint("/api/comments/2", "patch");
+  it("201: should respond with the correct likes value (incremented) if the user has not previously voted", async () => {
+    const updatedLikes = {
+      inc_likes: true,
+    };
+
+    const { body } = await request(app)
+      .patch("/api/comments/2")
+      .set("Authorization", `Bearer ${accessToken}`)
+      .send(updatedLikes)
+      .expect(201);
+
+    const { comment } = body;
+    expect(comment).toEqual({
+      likes: 1,
+      comment_id: 2,
+      quiz_id: 1,
+      comment_text:
+        "Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae.",
+      user_id: 1,
+      username: "Tom123",
+      created_at: expect.any(String),
+    });
+  });
+  it("201: should respond with the correct likes value (reduced) if the user has not previously voted", async () => {
+    const updatedLikes = {
+      inc_likes: false,
+    };
+
+    const { body } = await request(app)
+      .patch("/api/comments/2")
+      .set("Authorization", `Bearer ${accessToken}`)
+      .send(updatedLikes)
+      .expect(201);
+
+    const { comment } = body;
+    expect(comment).toMatchObject({
+      likes: -1,
+    });
+  });
+  it("201: should respond with the correct likes value (reduced) if the user dislikes a comment they previously liked", async () => {
+    const updatedLikes = {
+      inc_likes: false,
+    };
+
+    const { body } = await request(app)
+      .patch("/api/comments/3")
+      .set("Authorization", `Bearer ${accessToken}`)
+      .send(updatedLikes)
+      .expect(201);
+
+    const { comment } = body;
+    expect(comment).toMatchObject({
+      likes: 1,
+    });
+  });
+  it("201: should respond with the correct likes value (incremented) if the user likes a comment they previously disliked", async () => {
+    const updatedLikes = {
+      inc_likes: true,
+    };
+
+    const { body } = await request(app)
+      .patch("/api/comments/6")
+      .set("Authorization", `Bearer ${accessToken}`)
+      .send(updatedLikes)
+      .expect(201);
+
+    const { comment } = body;
+    expect(comment).toMatchObject({
+      likes: 1,
+    });
+  });
+  it("400: should respond with a msg if passed an invalid comment_id", async () => {
+    const updatedLikes = {
+      inc_likes: true,
+    };
+
+    const {
+      body: { msg },
+    } = await request(app)
+      .patch("/api/comments/ten")
+      .set("Authorization", `Bearer ${accessToken}`)
+      .send(updatedLikes)
+      .expect(400);
+
+    expect(msg).toBe("Invalid comment_id specified");
+  });
+  it("400: should respond with a msg if inc_likes is missing", async () => {
+    const {
+      body: { msg },
+    } = await request(app)
+      .patch("/api/comments/ten")
+      .set("Authorization", `Bearer ${accessToken}`)
+      .send({})
+      .expect(400);
+
+    expect(msg).toBe("inc_likes is required");
+  });
+  it("400: should respond with a msg if inc_likes is an invalid value", async () => {
+    const updatedLikes = {
+      inc_likes: 5,
+    };
+
+    const {
+      body: { msg },
+    } = await request(app)
+      .patch("/api/comments/2")
+      .set("Authorization", `Bearer ${accessToken}`)
+      .send(updatedLikes)
+      .expect(400);
+
+    expect(msg).toBe(
+      "Invalid value for specified inc_likes. Expected true or false"
+    );
+  });
+  it("400: should respond with a msg if the user tries to like a comment they have already liked", async () => {
+    const updatedLikes = {
+      inc_likes: true,
+    };
+
+    const {
+      body: { msg },
+    } = await request(app)
+      .patch("/api/comments/3")
+      .set("Authorization", `Bearer ${accessToken}`)
+      .send(updatedLikes)
+      .expect(400);
+
+    expect(msg).toBe("You have already liked this comment");
+  });
+  it("400: should respond with a msg if the user tries to dislike a comment they have already disliked", async () => {
+    const updatedLikes = {
+      inc_likes: false,
+    };
+
+    const {
+      body: { msg },
+    } = await request(app)
+      .patch("/api/comments/6")
+      .set("Authorization", `Bearer ${accessToken}`)
+      .send(updatedLikes)
+      .expect(400);
+
+    expect(msg).toBe("You have already disliked this comment");
+  });
+  it("404: should respond with a msg if passed a valid but non existent comment_id", async () => {
+    const updatedLikes = {
+      inc_likes: true,
+    };
+
+    const {
+      body: { msg },
+    } = await request(app)
+      .patch("/api/comments/20")
+      .set("Authorization", `Bearer ${accessToken}`)
+      .send(updatedLikes)
+      .expect(404);
+
+    expect(msg).toBe("comment_id not found");
   });
 });

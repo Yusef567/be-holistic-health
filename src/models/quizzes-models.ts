@@ -1,5 +1,5 @@
 import db from "../connection";
-import { NewQuiz, User } from "../interfaces/interfaces";
+import { NewQuiz, UpdatedLikes, User } from "../interfaces/interfaces";
 import { formattedQuestionsAndAnswers } from "../utils/quizUtils";
 
 export const fetchQuizzes = async (
@@ -69,14 +69,13 @@ export const fetchQuiz = async (quiz_id: string) => {
   }
 
   const quizQueryStr = `
-  SELECT q.quiz_id, q.quiz_name, q.description, q.quiz_img, q.category,q.user_id, q.username, q.release_date,
+  SELECT q.quiz_id, q.quiz_name, q.description, q.quiz_img, q.category, q.user_id, q.username, q.release_date,
   CAST(COALESCE(SUM(l.like_value), 0) AS INT) AS likes,
-  CAST(COUNT(c.comment_id) AS INT) AS comment_count
+  CAST(COALESCE((SELECT COUNT(*) FROM comments c WHERE c.quiz_id = q.quiz_id), 0) AS INT) AS comment_count
   FROM quizzes q
   LEFT JOIN likes l ON l.content_id = q.quiz_id AND l.content_type = 'quiz'
-  LEFT JOIN comments c ON c.quiz_id = q.quiz_id
   WHERE q.quiz_id = $1
-  GROUP BY q.quiz_id;
+  GROUP BY q.quiz_id
   `;
 
   const quizQueryResponse = await db.query(quizQueryStr, [quiz_id]);
@@ -151,21 +150,7 @@ export const insertQuiz = async (quiz: NewQuiz, user: User) => {
 
   const insertedQuizObj = quizQueryResponse.rows[0];
 
-  const selectQuizStr = `
-  SELECT q.quiz_id, q.quiz_name, q.description, q.quiz_img, q.category, q.username,q.user_id, q.release_date,
-  CAST(COALESCE(SUM(l.like_value), 0) AS INT) AS likes,
-  CAST(COUNT(c.comment_id) AS INT) AS comment_count
-  FROM quizzes q
-  LEFT JOIN likes l ON l.content_id = q.quiz_id AND l.content_type = 'quiz'
-  LEFT JOIN comments c ON c.quiz_id = q.quiz_id
-  WHERE q.quiz_id = $1
-  GROUP BY q.quiz_id
-  `;
-
-  const quizInfo = await db.query(selectQuizStr, [insertedQuizObj.quiz_id]);
-  const insertedQuiz = quizInfo.rows[0];
-
-  insertedQuiz.questions = [];
+  const insertedQuiz = await fetchQuiz(insertedQuizObj.quiz_id);
   const quizId = insertedQuiz.quiz_id;
 
   for (let i = 0; i < questions.length; i++) {
@@ -253,4 +238,89 @@ export const insertQuiz = async (quiz: NewQuiz, user: User) => {
   }
 
   return insertedQuiz;
+};
+
+export const updateQuiz = async (
+  quiz_id: string,
+  updatedLikes: UpdatedLikes,
+  user: User
+) => {
+  const { inc_likes } = updatedLikes;
+  const { user_id } = user;
+
+  if (inc_likes === undefined) {
+    throw { status: 400, msg: "inc_likes is required" };
+  } else if (inc_likes !== true && inc_likes !== false) {
+    throw {
+      status: 400,
+      msg: "Invalid value for specified inc_likes. Expected true or false",
+    };
+  }
+
+  await checkQuizIsValid(quiz_id);
+
+  const userLikedStatusQuery = `
+  SELECT *
+  FROM likes
+  WHERE user_id = $1 AND content_id = $2 AND content_type = 'quiz';
+  `;
+  const likedStatusResponse = await db.query(userLikedStatusQuery, [
+    user_id,
+    quiz_id,
+  ]);
+
+  const userLikedStatus = likedStatusResponse.rows[0];
+
+  if (userLikedStatus?.like_value === 1 && inc_likes) {
+    throw { status: 400, msg: "You have already liked this quiz" };
+  } else if (userLikedStatus?.like_value === -1 && !inc_likes) {
+    throw { status: 400, msg: "You have already disliked this quiz" };
+  }
+
+  if (!userLikedStatus && inc_likes) {
+    const updateLikesQueryStr = `
+    INSERT INTO likes (content_id, content_type, user_id, like_value)
+    VALUES ($1, $2, $3, $4)
+    RETURNING *
+  `;
+    const updateLikesResponse = await db.query(updateLikesQueryStr, [
+      quiz_id,
+      "quiz",
+      user_id,
+      1,
+    ]);
+    const quizInfo = await fetchQuiz(quiz_id);
+    return quizInfo;
+  } else if (!userLikedStatus && !inc_likes) {
+    const updateLikesQueryStr = `
+   INSERT INTO likes (content_id, content_type, user_id, like_value)
+   VALUES ($1, $2, $3, $4)
+   RETURNING *
+ `;
+    const updateLikesResponse = await db.query(updateLikesQueryStr, [
+      quiz_id,
+      "quiz",
+      user_id,
+      -1,
+    ]);
+    const quizInfo = await fetchQuiz(quiz_id);
+    return quizInfo;
+  } else if (
+    (userLikedStatus?.like_value === 1 || userLikedStatus?.like_value === -1) &&
+    (inc_likes || !inc_likes)
+  ) {
+    const removeLikesQueryStr = `
+    DELETE FROM likes
+    WHERE content_id = $1 AND content_type = $2 AND user_id = $3
+    RETURNING *
+  `;
+    const removeLikesResponse = await db.query(removeLikesQueryStr, [
+      quiz_id,
+      "quiz",
+      user_id,
+    ]);
+
+    const quizInfo = await fetchQuiz(quiz_id);
+    return quizInfo;
+  }
 };

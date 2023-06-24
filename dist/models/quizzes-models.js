@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.insertQuiz = exports.checkQuizIsValid = exports.fetchQuiz = exports.fetchQuizzes = void 0;
+exports.updateQuiz = exports.insertQuiz = exports.checkQuizIsValid = exports.fetchQuiz = exports.fetchQuizzes = void 0;
 const connection_1 = __importDefault(require("../connection"));
 const quizUtils_1 = require("../utils/quizUtils");
 const fetchQuizzes = (category, sort_by = "release_date", order = "desc", limit = "10", page = "1") => __awaiter(void 0, void 0, void 0, function* () {
@@ -62,14 +62,13 @@ const fetchQuiz = (quiz_id) => __awaiter(void 0, void 0, void 0, function* () {
         throw { status: 400, msg: "Invalid quiz_id specified" };
     }
     const quizQueryStr = `
-  SELECT q.quiz_id, q.quiz_name, q.description, q.quiz_img, q.category,q.user_id, q.username, q.release_date,
+  SELECT q.quiz_id, q.quiz_name, q.description, q.quiz_img, q.category, q.user_id, q.username, q.release_date,
   CAST(COALESCE(SUM(l.like_value), 0) AS INT) AS likes,
-  CAST(COUNT(c.comment_id) AS INT) AS comment_count
+  CAST(COALESCE((SELECT COUNT(*) FROM comments c WHERE c.quiz_id = q.quiz_id), 0) AS INT) AS comment_count
   FROM quizzes q
   LEFT JOIN likes l ON l.content_id = q.quiz_id AND l.content_type = 'quiz'
-  LEFT JOIN comments c ON c.quiz_id = q.quiz_id
   WHERE q.quiz_id = $1
-  GROUP BY q.quiz_id;
+  GROUP BY q.quiz_id
   `;
     const quizQueryResponse = yield connection_1.default.query(quizQueryStr, [quiz_id]);
     const quizInfo = quizQueryResponse.rows[0];
@@ -133,19 +132,7 @@ const insertQuiz = (quiz, user) => __awaiter(void 0, void 0, void 0, function* (
         quiz_img,
     ]);
     const insertedQuizObj = quizQueryResponse.rows[0];
-    const selectQuizStr = `
-  SELECT q.quiz_id, q.quiz_name, q.description, q.quiz_img, q.category, q.username,q.user_id, q.release_date,
-  CAST(COALESCE(SUM(l.like_value), 0) AS INT) AS likes,
-  CAST(COUNT(c.comment_id) AS INT) AS comment_count
-  FROM quizzes q
-  LEFT JOIN likes l ON l.content_id = q.quiz_id AND l.content_type = 'quiz'
-  LEFT JOIN comments c ON c.quiz_id = q.quiz_id
-  WHERE q.quiz_id = $1
-  GROUP BY q.quiz_id
-  `;
-    const quizInfo = yield connection_1.default.query(selectQuizStr, [insertedQuizObj.quiz_id]);
-    const insertedQuiz = quizInfo.rows[0];
-    insertedQuiz.questions = [];
+    const insertedQuiz = yield (0, exports.fetchQuiz)(insertedQuizObj.quiz_id);
     const quizId = insertedQuiz.quiz_id;
     for (let i = 0; i < questions.length; i++) {
         const question = questions[i];
@@ -220,3 +207,79 @@ const insertQuiz = (quiz, user) => __awaiter(void 0, void 0, void 0, function* (
     return insertedQuiz;
 });
 exports.insertQuiz = insertQuiz;
+const updateQuiz = (quiz_id, updatedLikes, user) => __awaiter(void 0, void 0, void 0, function* () {
+    const { inc_likes } = updatedLikes;
+    const { user_id } = user;
+    if (inc_likes === undefined) {
+        throw { status: 400, msg: "inc_likes is required" };
+    }
+    else if (inc_likes !== true && inc_likes !== false) {
+        throw {
+            status: 400,
+            msg: "Invalid value for specified inc_likes. Expected true or false",
+        };
+    }
+    yield (0, exports.checkQuizIsValid)(quiz_id);
+    const userLikedStatusQuery = `
+  SELECT *
+  FROM likes
+  WHERE user_id = $1 AND content_id = $2 AND content_type = 'quiz';
+  `;
+    const likedStatusResponse = yield connection_1.default.query(userLikedStatusQuery, [
+        user_id,
+        quiz_id,
+    ]);
+    const userLikedStatus = likedStatusResponse.rows[0];
+    if ((userLikedStatus === null || userLikedStatus === void 0 ? void 0 : userLikedStatus.like_value) === 1 && inc_likes) {
+        throw { status: 400, msg: "You have already liked this quiz" };
+    }
+    else if ((userLikedStatus === null || userLikedStatus === void 0 ? void 0 : userLikedStatus.like_value) === -1 && !inc_likes) {
+        throw { status: 400, msg: "You have already disliked this quiz" };
+    }
+    if (!userLikedStatus && inc_likes) {
+        const updateLikesQueryStr = `
+    INSERT INTO likes (content_id, content_type, user_id, like_value)
+    VALUES ($1, $2, $3, $4)
+    RETURNING *
+  `;
+        const updateLikesResponse = yield connection_1.default.query(updateLikesQueryStr, [
+            quiz_id,
+            "quiz",
+            user_id,
+            1,
+        ]);
+        const quizInfo = yield (0, exports.fetchQuiz)(quiz_id);
+        return quizInfo;
+    }
+    else if (!userLikedStatus && !inc_likes) {
+        const updateLikesQueryStr = `
+   INSERT INTO likes (content_id, content_type, user_id, like_value)
+   VALUES ($1, $2, $3, $4)
+   RETURNING *
+ `;
+        const updateLikesResponse = yield connection_1.default.query(updateLikesQueryStr, [
+            quiz_id,
+            "quiz",
+            user_id,
+            -1,
+        ]);
+        const quizInfo = yield (0, exports.fetchQuiz)(quiz_id);
+        return quizInfo;
+    }
+    else if (((userLikedStatus === null || userLikedStatus === void 0 ? void 0 : userLikedStatus.like_value) === 1 || (userLikedStatus === null || userLikedStatus === void 0 ? void 0 : userLikedStatus.like_value) === -1) &&
+        (inc_likes || !inc_likes)) {
+        const removeLikesQueryStr = `
+    DELETE FROM likes
+    WHERE content_id = $1 AND content_type = $2 AND user_id = $3
+    RETURNING *
+  `;
+        const removeLikesResponse = yield connection_1.default.query(removeLikesQueryStr, [
+            quiz_id,
+            "quiz",
+            user_id,
+        ]);
+        const quizInfo = yield (0, exports.fetchQuiz)(quiz_id);
+        return quizInfo;
+    }
+});
+exports.updateQuiz = updateQuiz;
