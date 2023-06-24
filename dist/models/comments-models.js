@@ -12,14 +12,21 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.insertComment = exports.fetchQuizComments = void 0;
+exports.updateComment = exports.insertComment = exports.fetchComment = exports.fetchQuizComments = void 0;
 const connection_1 = __importDefault(require("../connection"));
 const fetchQuizComments = (quiz_id, limit = "10", page = "1") => __awaiter(void 0, void 0, void 0, function* () {
     const isNumber = /^[0-9]+$/;
     if (!isNumber.test(quiz_id)) {
         throw { status: 400, msg: "Invalid quiz_id specified" };
     }
-    let commentsQueryStr = `SELECT * FROM comments WHERE quiz_id = $1 ORDER BY created_at DESC`;
+    let commentsQueryStr = `
+  SELECT c.*, CAST(COALESCE(SUM(l.like_value), 0) AS INT) AS likes
+  FROM comments c
+  LEFT JOIN likes l ON l.content_id = c.comment_id AND l.content_type = 'comment'
+  WHERE c.quiz_id = $1
+  GROUP BY c.comment_id
+  ORDER BY c.created_at DESC
+  `;
     if (!isNumber.test(limit)) {
         throw { status: 400, msg: "Invalid limit query specified" };
     }
@@ -37,6 +44,26 @@ const fetchQuizComments = (quiz_id, limit = "10", page = "1") => __awaiter(void 
     return { comments, totalCount };
 });
 exports.fetchQuizComments = fetchQuizComments;
+const fetchComment = (comment_id) => __awaiter(void 0, void 0, void 0, function* () {
+    const isNumber = /^[0-9]+$/;
+    if (!isNumber.test(comment_id)) {
+        throw { status: 400, msg: "Invalid comment_id specified" };
+    }
+    const commentQueryStr = `
+  SELECT c.*, CAST(COALESCE(SUM(l.like_value), 0) AS INT)AS likes
+  FROM comments c
+  LEFT JOIN likes l ON l.content_id = c.comment_id AND l.content_type = 'comment'
+  WHERE c.comment_id = $1
+  GROUP BY c.comment_id
+  `;
+    const commentQueryResponse = yield connection_1.default.query(commentQueryStr, [comment_id]);
+    const commentInfo = commentQueryResponse.rows[0];
+    if (!commentInfo) {
+        throw { status: 404, msg: "comment_id not found" };
+    }
+    return commentInfo;
+});
+exports.fetchComment = fetchComment;
 const insertComment = (quiz_id, comment, user) => __awaiter(void 0, void 0, void 0, function* () {
     const { comment_text } = comment;
     const { username, user_id } = user;
@@ -60,7 +87,87 @@ const insertComment = (quiz_id, comment, user) => __awaiter(void 0, void 0, void
         username,
         user_id,
     ]);
-    const insertedCommentObj = insertCommentResponse.rows[0];
+    const insertedCommentObj = insertCommentResponse === null || insertCommentResponse === void 0 ? void 0 : insertCommentResponse.rows[0];
+    if (!insertedCommentObj) {
+        throw { status: 404, msg: "quiz_id not found" };
+    }
+    insertedCommentObj.likes = 0;
     return insertedCommentObj;
 });
 exports.insertComment = insertComment;
+const updateComment = (comment_id, updatedLikes, user) => __awaiter(void 0, void 0, void 0, function* () {
+    const { inc_likes } = updatedLikes;
+    const { user_id } = user;
+    if (inc_likes === undefined) {
+        throw { status: 400, msg: "inc_likes is required" };
+    }
+    else if (inc_likes !== true && inc_likes !== false) {
+        throw {
+            status: 400,
+            msg: "Invalid value for specified inc_likes. Expected true or false",
+        };
+    }
+    yield (0, exports.fetchComment)(comment_id);
+    const userLikedStatusQuery = `
+  SELECT *
+  FROM likes
+  WHERE user_id = $1 AND content_id = $2 AND content_type = 'comment';
+  `;
+    const likedStatusResponse = yield connection_1.default.query(userLikedStatusQuery, [
+        user_id,
+        comment_id,
+    ]);
+    const userLikedStatus = likedStatusResponse.rows[0];
+    if ((userLikedStatus === null || userLikedStatus === void 0 ? void 0 : userLikedStatus.like_value) === 1 && inc_likes) {
+        throw { status: 400, msg: "You have already liked this comment" };
+    }
+    else if ((userLikedStatus === null || userLikedStatus === void 0 ? void 0 : userLikedStatus.like_value) === -1 && !inc_likes) {
+        throw { status: 400, msg: "You have already disliked this comment" };
+    }
+    if (!userLikedStatus && inc_likes) {
+        const updateLikesQueryStr = `
+    INSERT INTO likes (content_id, content_type, user_id, like_value)
+    VALUES ($1, $2, $3, $4)
+    RETURNING *
+  `;
+        const updateLikesResponse = yield connection_1.default.query(updateLikesQueryStr, [
+            comment_id,
+            "comment",
+            user_id,
+            1,
+        ]);
+        const commentInfo = yield (0, exports.fetchComment)(comment_id);
+        return commentInfo;
+    }
+    else if (!userLikedStatus && !inc_likes) {
+        const updateLikesQueryStr = `
+   INSERT INTO likes (content_id, content_type, user_id, like_value)
+   VALUES ($1, $2, $3, $4)
+   RETURNING *
+ `;
+        const updateLikesResponse = yield connection_1.default.query(updateLikesQueryStr, [
+            comment_id,
+            "comment",
+            user_id,
+            -1,
+        ]);
+        const commentInfo = yield (0, exports.fetchComment)(comment_id);
+        return commentInfo;
+    }
+    else if (((userLikedStatus === null || userLikedStatus === void 0 ? void 0 : userLikedStatus.like_value) === 1 || (userLikedStatus === null || userLikedStatus === void 0 ? void 0 : userLikedStatus.like_value) === -1) &&
+        (inc_likes || !inc_likes)) {
+        const removeLikesQueryStr = `
+    DELETE FROM likes
+    WHERE content_id = $1 AND content_type = $2 AND user_id = $3
+    RETURNING *
+  `;
+        const removeLikesResponse = yield connection_1.default.query(removeLikesQueryStr, [
+            comment_id,
+            "comment",
+            user_id,
+        ]);
+        const commentInfo = yield (0, exports.fetchComment)(comment_id);
+        return commentInfo;
+    }
+});
+exports.updateComment = updateComment;

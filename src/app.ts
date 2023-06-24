@@ -14,10 +14,12 @@ import { getCategories } from "./controllers/categories-controllers";
 import {
   getQuiz,
   getQuizzes,
+  patchQuiz,
   postQuiz,
 } from "./controllers/quizzes-controllers";
 import {
   getQuizComments,
+  patchComment,
   postComment,
 } from "./controllers/comments-controllers";
 
@@ -48,6 +50,10 @@ app.get("/api/quizzes/:quiz_id/comments", getQuizComments);
 app.post("/api/quizzes", postQuiz);
 
 app.post("/api/quizzes/:quiz_id/comments", postComment);
+
+app.patch("/api/quizzes/:quiz_id", patchQuiz);
+
+app.patch("/api/comments/:comment_id", patchComment);
 
 app.use("/*", handlePathNotFound);
 

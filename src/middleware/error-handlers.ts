@@ -27,6 +27,11 @@ export const handlePSQL400sErrors = (
     err.constraint === "quizzes_username_fkey"
   ) {
     res.status(404).send({ msg: "Username not found" });
+  } else if (
+    err.code === "23503" &&
+    err.constraint === "comments_quiz_id_fkey"
+  ) {
+    res.status(404).send({ msg: "quiz_id not found" });
   } else if (err.code === "23503") {
     res.status(404).send({ msg: "Referenced record not found" });
   } else {

@@ -49,3 +49,7 @@ export interface NewQuiz {
   quiz_img: string;
   questions: Questions[];
 }
+
+export interface UpdatedLikes {
+  inc_likes: boolean;
+}
