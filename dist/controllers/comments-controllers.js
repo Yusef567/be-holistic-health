@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.patchComment = exports.postComment = exports.getQuizComments = void 0;
+exports.deleteComment = exports.patchComment = exports.postComment = exports.getQuizComments = void 0;
 const comments_models_1 = require("../models/comments-models");
 const quizzes_models_1 = require("../models/quizzes-models");
 const passport_config_1 = __importDefault(require("../passport-config"));
@@ -63,3 +63,25 @@ const patchComment = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
     }))(req, res, next);
 });
 exports.patchComment = patchComment;
+const deleteComment = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    passport_config_1.default.authenticate("jwt", { session: false }, (err, user, info) => __awaiter(void 0, void 0, void 0, function* () {
+        try {
+            if (err || !user) {
+                return res.status(401).send({ msg: "Unauthorized" });
+            }
+            const { comment_id } = req.params;
+            const comment = yield (0, comments_models_1.fetchComment)(comment_id);
+            if (comment.user_id !== user.user_id) {
+                return res.status(403).send({
+                    msg: "You are not authorized to delete this comment",
+                });
+            }
+            yield (0, comments_models_1.removeComment)(comment_id);
+            res.sendStatus(204);
+        }
+        catch (err) {
+            next(err);
+        }
+    }))(req, res, next);
+});
+exports.deleteComment = deleteComment;

@@ -103,5 +103,17 @@ const likesData = [
         user_id: 2,
         like_value: 1,
     },
+    {
+        content_id: 11,
+        content_type: "comment",
+        user_id: 1,
+        like_value: 1,
+    },
+    {
+        content_id: 11,
+        content_type: "comment",
+        user_id: 2,
+        like_value: 1,
+    },
 ];
 exports.default = likesData;

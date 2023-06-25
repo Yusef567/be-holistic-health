@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.patchQuiz = exports.postQuiz = exports.getQuiz = exports.getQuizzes = void 0;
+exports.deleteQuiz = exports.patchQuiz = exports.postQuiz = exports.getQuiz = exports.getQuizzes = void 0;
 const categories_models_1 = require("../models/categories-models");
 const quizzes_models_1 = require("../models/quizzes-models");
 const passport_config_1 = __importDefault(require("../passport-config"));
@@ -78,3 +78,25 @@ const patchQuiz = (req, res, next) => __awaiter(void 0, void 0, void 0, function
     }))(req, res, next);
 });
 exports.patchQuiz = patchQuiz;
+const deleteQuiz = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    passport_config_1.default.authenticate("jwt", { session: false }, (err, user, info) => __awaiter(void 0, void 0, void 0, function* () {
+        try {
+            if (err || !user) {
+                return res.status(401).send({ msg: "Unauthorized" });
+            }
+            const { quiz_id } = req.params;
+            const quiz = yield (0, quizzes_models_1.fetchQuiz)(quiz_id);
+            if (quiz.user_id !== user.user_id) {
+                return res.status(403).send({
+                    msg: "You are not authorized to delete this quiz",
+                });
+            }
+            yield (0, quizzes_models_1.deleteQuizData)(quiz_id);
+            res.sendStatus(204);
+        }
+        catch (err) {
+            next(err);
+        }
+    }))(req, res, next);
+});
+exports.deleteQuiz = deleteQuiz;

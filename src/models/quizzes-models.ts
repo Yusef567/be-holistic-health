@@ -324,3 +324,61 @@ export const updateQuiz = async (
     return quizInfo;
   }
 };
+
+export const deleteQuizData = async (quiz_id: string) => {
+  const getCommentsIdsQuery = `SELECT * FROM comments WHERE quiz_id = $1`;
+  const { rows } = await db.query(getCommentsIdsQuery, [quiz_id]);
+  const commentIds = rows.map((comment) => comment.comment_id);
+
+  const deleteCommentsLikes = `
+  DELETE FROM likes
+  WHERE content_id = ANY($1::int[]) AND content_type = 'comment'
+  RETURNING *
+`;
+  const deleteCommentsLikesPromise = db.query(deleteCommentsLikes, [
+    commentIds,
+  ]);
+
+  const deleteCommentsQuery = `
+  DELETE FROM comments WHERE quiz_id = $1 RETURNING *
+  `;
+  const deleteCommentsPromise = db.query(deleteCommentsQuery, [quiz_id]);
+
+  const deleteQuizLikesQuery = `
+  DELETE FROM likes
+  WHERE content_id = $1 AND content_type = 'quiz' 
+  RETURNING *
+  `;
+  const deleteQuizLikesPromise = db.query(deleteQuizLikesQuery, [quiz_id]);
+
+  await Promise.all([
+    deleteCommentsPromise,
+    deleteCommentsLikesPromise,
+    deleteQuizLikesPromise,
+  ]);
+
+  const deleteAnswersQuery = `
+  DELETE FROM answers 
+  WHERE question_id IN (SELECT question_id FROM questions WHERE quiz_id = $1)
+  RETURNING *
+  `;
+  const deleteAnswersResponse = await db.query(deleteAnswersQuery, [quiz_id]);
+
+  const deleteQuestionsQuery = `
+  DELETE FROM questions 
+  WHERE quiz_id = $1
+  RETURNING *
+  `;
+  const deleteQuestionsResponse = await db.query(deleteQuestionsQuery, [
+    quiz_id,
+  ]);
+
+  const deleteQuizQuery = `
+  DELETE FROM quizzes 
+  WHERE quiz_id = $1
+  RETURNING *
+  `;
+  const deleteQuizResponse = await db.query(deleteQuizQuery, [quiz_id]);
+
+  return true;
+};

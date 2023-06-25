@@ -64,28 +64,28 @@ const commentsData = [
     quiz_id: 6,
     comment_text:
       "Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas.",
-    user_id: 1,
+    user_id: 2,
     username: "Alex456",
   },
   {
     quiz_id: 6,
     comment_text:
       "Aliquam erat volutpat. Sed dictum, dui a tristique pulvinar, nulla mauris consectetur neque, ut varius lectus urna sed ipsum.",
-    user_id: 1,
+    user_id: 2,
     username: "Alex456",
   },
   {
     quiz_id: 5,
     comment_text:
       "Cras condimentum consectetur tristique. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae.",
-    user_id: 1,
+    user_id: 2,
     username: "Alex456",
   },
   {
     quiz_id: 5,
     comment_text:
       "Fusce eleifend tristique ligula, ac varius est ultricies sed.",
-    user_id: 1,
+    user_id: 2,
     username: "Alex456",
   },
   {

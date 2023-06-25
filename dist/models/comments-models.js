@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.updateComment = exports.insertComment = exports.fetchComment = exports.fetchQuizComments = void 0;
+exports.removeComment = exports.updateComment = exports.insertComment = exports.fetchComment = exports.fetchQuizComments = void 0;
 const connection_1 = __importDefault(require("../connection"));
 const fetchQuizComments = (quiz_id, limit = "10", page = "1") => __awaiter(void 0, void 0, void 0, function* () {
     const isNumber = /^[0-9]+$/;
@@ -171,3 +171,20 @@ const updateComment = (comment_id, updatedLikes, user) => __awaiter(void 0, void
     }
 });
 exports.updateComment = updateComment;
+const removeComment = (comment_id) => __awaiter(void 0, void 0, void 0, function* () {
+    const deleteLikesQuery = `
+  DELETE FROM likes 
+  WHERE content_id = $1 AND content_type = 'comment'
+  RETURNING *
+`;
+    const deleteLikesPromise = connection_1.default.query(deleteLikesQuery, [comment_id]);
+    const deleteComment = `
+  DELETE FROM comments 
+  WHERE comment_id = $1 
+  RETURNING *
+`;
+    const deleteCommentPromise = connection_1.default.query(deleteComment, [comment_id]);
+    yield Promise.all([deleteLikesPromise, deleteCommentPromise]);
+    return true;
+});
+exports.removeComment = removeComment;
