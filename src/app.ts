@@ -12,12 +12,14 @@ import {
 } from "./middleware/error-handlers";
 import { getCategories } from "./controllers/categories-controllers";
 import {
+  deleteQuiz,
   getQuiz,
   getQuizzes,
   patchQuiz,
   postQuiz,
 } from "./controllers/quizzes-controllers";
 import {
+  deleteComment,
   getQuizComments,
   patchComment,
   postComment,
@@ -54,6 +56,10 @@ app.post("/api/quizzes/:quiz_id/comments", postComment);
 app.patch("/api/quizzes/:quiz_id", patchQuiz);
 
 app.patch("/api/comments/:comment_id", patchComment);
+
+app.delete("/api/quizzes/:quiz_id", deleteQuiz);
+
+app.delete("/api/comments/:comment_id", deleteComment);
 
 app.use("/*", handlePathNotFound);
 

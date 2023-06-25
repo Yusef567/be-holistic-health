@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { checkCategory } from "../models/categories-models";
 import {
+  deleteQuizData,
   fetchQuiz,
   fetchQuizzes,
   insertQuiz,
@@ -108,6 +109,35 @@ export const patchQuiz = async (
         const updatedLikes = req.body;
         const quiz = await updateQuiz(quiz_id, updatedLikes, user);
         res.status(201).send({ quiz });
+      } catch (err) {
+        next(err);
+      }
+    }
+  )(req, res, next);
+};
+
+export const deleteQuiz = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  passport.authenticate(
+    "jwt",
+    { session: false },
+    async (err: Error, user: User, info: any) => {
+      try {
+        if (err || !user) {
+          return res.status(401).send({ msg: "Unauthorized" });
+        }
+        const { quiz_id } = req.params;
+        const quiz = await fetchQuiz(quiz_id);
+        if (quiz.user_id !== user.user_id) {
+          return res.status(403).send({
+            msg: "You are not authorized to delete this quiz",
+          });
+        }
+        await deleteQuizData(quiz_id);
+        res.sendStatus(204);
       } catch (err) {
         next(err);
       }

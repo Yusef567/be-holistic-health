@@ -28,6 +28,8 @@ app.post("/api/quizzes", quizzes_controllers_1.postQuiz);
 app.post("/api/quizzes/:quiz_id/comments", comments_controllers_1.postComment);
 app.patch("/api/quizzes/:quiz_id", quizzes_controllers_1.patchQuiz);
 app.patch("/api/comments/:comment_id", comments_controllers_1.patchComment);
+app.delete("/api/quizzes/:quiz_id", quizzes_controllers_1.deleteQuiz);
+app.delete("/api/comments/:comment_id", comments_controllers_1.deleteComment);
 app.use("/*", error_handlers_1.handlePathNotFound);
 app.use(error_handlers_1.handlePSQL400sErrors);
 app.use(error_handlers_1.handleCustomErrors);

@@ -194,3 +194,24 @@ export const updateComment = async (
     return commentInfo;
   }
 };
+
+export const removeComment = async (comment_id: string) => {
+  const deleteLikesQuery = `
+  DELETE FROM likes 
+  WHERE content_id = $1 AND content_type = 'comment'
+  RETURNING *
+`;
+  const deleteLikesPromise = db.query(deleteLikesQuery, [comment_id]);
+
+  const deleteComment = `
+  DELETE FROM comments 
+  WHERE comment_id = $1 
+  RETURNING *
+`;
+
+  const deleteCommentPromise = db.query(deleteComment, [comment_id]);
+
+  await Promise.all([deleteLikesPromise, deleteCommentPromise]);
+
+  return true;
+};

@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.updateQuiz = exports.insertQuiz = exports.checkQuizIsValid = exports.fetchQuiz = exports.fetchQuizzes = void 0;
+exports.deleteQuizData = exports.updateQuiz = exports.insertQuiz = exports.checkQuizIsValid = exports.fetchQuiz = exports.fetchQuizzes = void 0;
 const connection_1 = __importDefault(require("../connection"));
 const quizUtils_1 = require("../utils/quizUtils");
 const fetchQuizzes = (category, sort_by = "release_date", order = "desc", limit = "10", page = "1") => __awaiter(void 0, void 0, void 0, function* () {
@@ -283,3 +283,53 @@ const updateQuiz = (quiz_id, updatedLikes, user) => __awaiter(void 0, void 0, vo
     }
 });
 exports.updateQuiz = updateQuiz;
+const deleteQuizData = (quiz_id) => __awaiter(void 0, void 0, void 0, function* () {
+    const getCommentsIdsQuery = `SELECT * FROM comments WHERE quiz_id = $1`;
+    const { rows } = yield connection_1.default.query(getCommentsIdsQuery, [quiz_id]);
+    const commentIds = rows.map((comment) => comment.comment_id);
+    const deleteCommentsLikes = `
+  DELETE FROM likes
+  WHERE content_id = ANY($1::int[]) AND content_type = 'comment'
+  RETURNING *
+`;
+    const deleteCommentsLikesPromise = connection_1.default.query(deleteCommentsLikes, [
+        commentIds,
+    ]);
+    const deleteCommentsQuery = `
+  DELETE FROM comments WHERE quiz_id = $1 RETURNING *
+  `;
+    const deleteCommentsPromise = connection_1.default.query(deleteCommentsQuery, [quiz_id]);
+    const deleteQuizLikesQuery = `
+  DELETE FROM likes
+  WHERE content_id = $1 AND content_type = 'quiz' 
+  RETURNING *
+  `;
+    const deleteQuizLikesPromise = connection_1.default.query(deleteQuizLikesQuery, [quiz_id]);
+    yield Promise.all([
+        deleteCommentsPromise,
+        deleteCommentsLikesPromise,
+        deleteQuizLikesPromise,
+    ]);
+    const deleteAnswersQuery = `
+  DELETE FROM answers 
+  WHERE question_id IN (SELECT question_id FROM questions WHERE quiz_id = $1)
+  RETURNING *
+  `;
+    const deleteAnswersResponse = yield connection_1.default.query(deleteAnswersQuery, [quiz_id]);
+    const deleteQuestionsQuery = `
+  DELETE FROM questions 
+  WHERE quiz_id = $1
+  RETURNING *
+  `;
+    const deleteQuestionsResponse = yield connection_1.default.query(deleteQuestionsQuery, [
+        quiz_id,
+    ]);
+    const deleteQuizQuery = `
+  DELETE FROM quizzes 
+  WHERE quiz_id = $1
+  RETURNING *
+  `;
+    const deleteQuizResponse = yield connection_1.default.query(deleteQuizQuery, [quiz_id]);
+    return true;
+});
+exports.deleteQuizData = deleteQuizData;

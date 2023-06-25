@@ -1,7 +1,9 @@
 import { Request, Response, NextFunction } from "express";
 import {
+  fetchComment,
   fetchQuizComments,
   insertComment,
+  removeComment,
   updateComment,
 } from "../models/comments-models";
 import { checkQuizIsValid } from "../models/quizzes-models";
@@ -65,6 +67,35 @@ export const patchComment = async (
         const updatedLikes = req.body;
         const comment = await updateComment(comment_id, updatedLikes, user);
         res.status(201).send({ comment });
+      } catch (err) {
+        next(err);
+      }
+    }
+  )(req, res, next);
+};
+
+export const deleteComment = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  passport.authenticate(
+    "jwt",
+    { session: false },
+    async (err: Error, user: User, info: any) => {
+      try {
+        if (err || !user) {
+          return res.status(401).send({ msg: "Unauthorized" });
+        }
+        const { comment_id } = req.params;
+        const comment = await fetchComment(comment_id);
+        if (comment.user_id !== user.user_id) {
+          return res.status(403).send({
+            msg: "You are not authorized to delete this comment",
+          });
+        }
+        await removeComment(comment_id);
+        res.sendStatus(204);
       } catch (err) {
         next(err);
       }

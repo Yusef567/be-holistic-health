@@ -2013,3 +2013,138 @@ describe("PATCH /api/comments/:comment_id", () => {
     expect(msg).toBe("comment_id not found");
   });
 });
+
+describe("DELETE /api/quizzes/:quiz_id", () => {
+  testProtectedEndpoint("/api/quizzes/1", "delete");
+  it("204: should delete the quiz along with the associated comments, likes, questions and answers", async () => {
+    await request(app)
+      .delete("/api/quizzes/1")
+      .set("Authorization", `Bearer ${accessToken}`)
+      .expect(204);
+
+    const {
+      body: { msg },
+    } = await request(app).get("/api/quizzes/1").expect(404);
+
+    expect(msg).toBe("quiz_id not found");
+
+    const commentsRequest = await request(app)
+      .get("/api/quizzes/1/comments")
+      .expect(404);
+
+    expect(commentsRequest.body.msg).toBe("quiz_id not found");
+
+    const questionsQuery = "SELECT * FROM questions WHERE quiz_id = 1";
+    const { rows } = await db.query(questionsQuery);
+
+    const answersQuery = `
+    SELECT * FROM answers 
+    WHERE question_id IN (SELECT question_id FROM questions WHERE quiz_id = 1)
+    `;
+    const answersResponse = await db.query(answersQuery);
+
+    const commentWithLikes = `
+    SELECT * FROM likes WHERE content_id = 3 AND content_type = 'comment';
+    `;
+    const likeValues = await db.query(commentWithLikes);
+
+    expect(rows).toBeInstanceOf(Array);
+    expect(rows).toHaveLength(0);
+
+    expect(answersResponse.rows).toBeInstanceOf(Array);
+    expect(answersResponse.rows).toHaveLength(0);
+
+    expect(likeValues.rows).toBeInstanceOf(Array);
+    expect(likeValues.rows).toHaveLength(0);
+  });
+  it("400: should respond with a msg if passed an invalid quiz_id", async () => {
+    const {
+      body: { msg },
+    } = await request(app)
+      .delete("/api/quizzes/two")
+      .set("Authorization", `Bearer ${accessToken}`)
+      .expect(400);
+
+    expect(msg).toBe("Invalid quiz_id specified");
+  });
+  it("403: should respond with a msg if the user tries to delete a quiz they did not post", async () => {
+    const {
+      body: { msg },
+    } = await request(app)
+      .delete("/api/quizzes/2")
+      .set("Authorization", `Bearer ${accessToken}`)
+      .expect(403);
+
+    expect(msg).toBe("You are not authorized to delete this quiz");
+  });
+  it("404: should respond with a msg if passed a valid but non existent quiz_id", async () => {
+    const {
+      body: { msg },
+    } = await request(app)
+      .delete("/api/quizzes/20")
+      .set("Authorization", `Bearer ${accessToken}`)
+      .expect(404);
+
+    expect(msg).toBe("quiz_id not found");
+  });
+});
+
+describe("DELETE /api/comments/:comment_id", () => {
+  testProtectedEndpoint("/api/comments/11", "delete");
+  it("204: should delete the comment specified along with the associated likes", async () => {
+    await request(app)
+      .delete("/api/comments/11")
+      .set("Authorization", `Bearer ${accessToken}`)
+      .expect(204);
+
+    const updatedLikes = {
+      inc_likes: false,
+    };
+
+    const patchCommentRequest = await request(app)
+      .patch("/api/comments/11")
+      .set("Authorization", `Bearer ${accessToken}`)
+      .send(updatedLikes)
+      .expect(404);
+
+    expect(patchCommentRequest.body.msg).toBe("comment_id not found");
+
+    const likesQuery = `
+    SELECT * FROM likes WHERE content_id = 11 AND content_type = 'comment';
+    `;
+    const { rows } = await db.query(likesQuery);
+
+    expect(rows).toBeInstanceOf(Array);
+    expect(rows).toHaveLength(0);
+  });
+  it("400: should respond with a msg if passed an invalid comment_id", async () => {
+    const {
+      body: { msg },
+    } = await request(app)
+      .delete("/api/comments/ten")
+      .set("Authorization", `Bearer ${accessToken}`)
+      .expect(400);
+
+    expect(msg).toBe("Invalid comment_id specified");
+  });
+  it("403: should respond with a msg if the user tries to delete a comment they did not post", async () => {
+    const {
+      body: { msg },
+    } = await request(app)
+      .delete("/api/comments/1")
+      .set("Authorization", `Bearer ${accessToken}`)
+      .expect(403);
+
+    expect(msg).toBe("You are not authorized to delete this comment");
+  });
+  it("404: should respond with a msg if passed a valid but non existent comment_id", async () => {
+    const {
+      body: { msg },
+    } = await request(app)
+      .delete("/api/comments/50")
+      .set("Authorization", `Bearer ${accessToken}`)
+      .expect(404);
+
+    expect(msg).toBe("comment_id not found");
+  });
+});
