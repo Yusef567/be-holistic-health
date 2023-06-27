@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteQuiz = exports.patchQuiz = exports.postQuiz = exports.getQuiz = exports.getQuizzes = void 0;
+exports.likedQuizStatus = exports.deleteQuiz = exports.patchQuiz = exports.postQuiz = exports.getQuiz = exports.getQuizzes = void 0;
 const categories_models_1 = require("../models/categories-models");
 const quizzes_models_1 = require("../models/quizzes-models");
 const passport_config_1 = __importDefault(require("../passport-config"));
@@ -100,3 +100,19 @@ const deleteQuiz = (req, res, next) => __awaiter(void 0, void 0, void 0, functio
     }))(req, res, next);
 });
 exports.deleteQuiz = deleteQuiz;
+const likedQuizStatus = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    passport_config_1.default.authenticate("jwt", { session: false }, (err, user, info) => __awaiter(void 0, void 0, void 0, function* () {
+        try {
+            if (err || !user) {
+                return res.status(401).send({ msg: "Unauthorized" });
+            }
+            const { quiz_id } = req.params;
+            const likedStatus = yield (0, quizzes_models_1.fetchLikedStatus)(quiz_id, user);
+            res.status(200).send({ likedStatus });
+        }
+        catch (err) {
+            next(err);
+        }
+    }))(req, res, next);
+});
+exports.likedQuizStatus = likedQuizStatus;

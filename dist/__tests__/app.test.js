@@ -1801,3 +1801,123 @@ describe("DELETE /api/comments/:comment_id", () => {
         expect(msg).toBe("comment_id not found");
     }));
 });
+describe("GET /api/quizzes/:quiz_id/user/likes", () => {
+    testProtectedEndpoint("/api/quizzes/:quiz_id/user/likes", "get");
+    it("200: should respond with a status of true if the user has liked the quiz", () => __awaiter(void 0, void 0, void 0, function* () {
+        const { body } = yield (0, supertest_1.default)(app_1.default)
+            .get("/api/quizzes/1/user/likes")
+            .set("Authorization", `Bearer ${accessToken}`)
+            .expect(200);
+        const { likedStatus } = body;
+        expect(likedStatus).toEqual({ hasLiked: true });
+    }));
+    it("200: should respond with a status of false if the user has disliked the quiz", () => __awaiter(void 0, void 0, void 0, function* () {
+        const { body } = yield (0, supertest_1.default)(app_1.default)
+            .get("/api/quizzes/7/user/likes")
+            .set("Authorization", `Bearer ${accessToken}`)
+            .expect(200);
+        const { likedStatus } = body;
+        expect(likedStatus).toEqual({ hasLiked: false });
+    }));
+    it("200: should respond with a status of null if the user has not voted on the quiz", () => __awaiter(void 0, void 0, void 0, function* () {
+        const { body } = yield (0, supertest_1.default)(app_1.default)
+            .get("/api/quizzes/2/user/likes")
+            .set("Authorization", `Bearer ${accessToken}`)
+            .expect(200);
+        const { likedStatus } = body;
+        expect(likedStatus).toEqual({ hasLiked: null });
+    }));
+    it("400: should respond with a msg if passed an invalid quiz_id", () => __awaiter(void 0, void 0, void 0, function* () {
+        const { body: { msg }, } = yield (0, supertest_1.default)(app_1.default)
+            .get("/api/quizzes/one/user/likes")
+            .set("Authorization", `Bearer ${accessToken}`)
+            .expect(400);
+        expect(msg).toBe("Invalid quiz_id specified");
+    }));
+    it("404: should respond with a msg if passed a valid but non existent quiz_id", () => __awaiter(void 0, void 0, void 0, function* () {
+        const { body: { msg }, } = yield (0, supertest_1.default)(app_1.default)
+            .get("/api/quizzes/20/user/likes")
+            .set("Authorization", `Bearer ${accessToken}`)
+            .expect(404);
+        expect(msg).toBe("quiz_id not found");
+    }));
+});
+describe("GET /api/quizzes/:quiz_id/comments/user/likes", () => {
+    testProtectedEndpoint("/api/quizzes/1/comments/user/likes", "get");
+    it("200: should respond with a vote array of the users votes on the comments for the quiz_id", () => __awaiter(void 0, void 0, void 0, function* () {
+        const { body } = yield (0, supertest_1.default)(app_1.default)
+            .get("/api/quizzes/1/comments/user/likes")
+            .set("Authorization", `Bearer ${accessToken}`)
+            .expect(200);
+        const statusResponse = {
+            quiz_id: 1,
+            votes: [
+                {
+                    comment_id: 1,
+                    hasLiked: null,
+                },
+                {
+                    comment_id: 2,
+                    hasLiked: null,
+                },
+                {
+                    comment_id: 3,
+                    hasLiked: true,
+                },
+                {
+                    comment_id: 4,
+                    hasLiked: null,
+                },
+                {
+                    comment_id: 5,
+                    hasLiked: null,
+                },
+                {
+                    comment_id: 6,
+                    hasLiked: false,
+                },
+                {
+                    comment_id: 7,
+                    hasLiked: null,
+                },
+                {
+                    comment_id: 8,
+                    hasLiked: null,
+                },
+                {
+                    comment_id: 9,
+                    hasLiked: true,
+                },
+                {
+                    comment_id: 10,
+                    hasLiked: null,
+                },
+            ],
+        };
+        const { likedStatus } = body;
+        expect(likedStatus).toEqual(statusResponse);
+    }));
+    it("200: should respond with an empty votes array if quiz_id has no comments", () => __awaiter(void 0, void 0, void 0, function* () {
+        const { body } = yield (0, supertest_1.default)(app_1.default)
+            .get("/api/quizzes/2/comments/user/likes")
+            .set("Authorization", `Bearer ${accessToken}`)
+            .expect(200);
+        const statusResponse = { quiz_id: 2, votes: [] };
+        const { likedStatus } = body;
+        expect(likedStatus).toEqual(statusResponse);
+    }));
+    it("400: should respond with a msg if passed an invalid quiz_id", () => __awaiter(void 0, void 0, void 0, function* () {
+        const { body: { msg }, } = yield (0, supertest_1.default)(app_1.default)
+            .get("/api/quizzes/five/comments/user/likes")
+            .set("Authorization", `Bearer ${accessToken}`)
+            .expect(400);
+        expect(msg).toBe("Invalid quiz_id specified");
+    }));
+    it("404: should respond with a msg if passed a valid but non existent quiz_id", () => __awaiter(void 0, void 0, void 0, function* () {
+        const { body: { msg }, } = yield (0, supertest_1.default)(app_1.default)
+            .get("/api/quizzes/15/comments/user/likes")
+            .set("Authorization", `Bearer ${accessToken}`)
+            .expect(404);
+        expect(msg).toBe("quiz_id not found");
+    }));
+});
