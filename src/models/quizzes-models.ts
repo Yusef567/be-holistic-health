@@ -382,3 +382,37 @@ export const deleteQuizData = async (quiz_id: string) => {
 
   return true;
 };
+
+export const fetchLikedStatus = async (quiz_id: string, user: User) => {
+  const isNumber = /^[0-9]+$/;
+
+  if (!isNumber.test(quiz_id)) {
+    throw { status: 400, msg: "Invalid quiz_id specified" };
+  }
+
+  const quizQueryStr = `
+  SELECT * FROM quizzes 
+  WHERE quiz_id = $1
+  `;
+  const checkQuizExists = await db.query(quizQueryStr, [quiz_id]);
+  const foundQuiz = checkQuizExists.rows[0];
+
+  if (!foundQuiz) {
+    throw { status: 404, msg: "quiz_id not found" };
+  }
+  const userLikedQuery = `
+  SELECT * FROM likes 
+  WHERE user_id = $1 AND content_id = $2 AND content_type = 'quiz';
+`;
+
+  const queryResponse = await db.query(userLikedQuery, [user.user_id, quiz_id]);
+  const likedData = queryResponse.rows[0];
+
+  if (likedData?.like_value === 1) {
+    return { hasLiked: true };
+  } else if (likedData?.like_value === -1) {
+    return { hasLiked: false };
+  } else if (!likedData) {
+    return { hasLiked: null };
+  }
+};

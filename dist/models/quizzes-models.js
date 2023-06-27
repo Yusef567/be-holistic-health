@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteQuizData = exports.updateQuiz = exports.insertQuiz = exports.checkQuizIsValid = exports.fetchQuiz = exports.fetchQuizzes = void 0;
+exports.fetchLikedStatus = exports.deleteQuizData = exports.updateQuiz = exports.insertQuiz = exports.checkQuizIsValid = exports.fetchQuiz = exports.fetchQuizzes = void 0;
 const connection_1 = __importDefault(require("../connection"));
 const quizUtils_1 = require("../utils/quizUtils");
 const fetchQuizzes = (category, sort_by = "release_date", order = "desc", limit = "10", page = "1") => __awaiter(void 0, void 0, void 0, function* () {
@@ -333,3 +333,34 @@ const deleteQuizData = (quiz_id) => __awaiter(void 0, void 0, void 0, function* 
     return true;
 });
 exports.deleteQuizData = deleteQuizData;
+const fetchLikedStatus = (quiz_id, user) => __awaiter(void 0, void 0, void 0, function* () {
+    const isNumber = /^[0-9]+$/;
+    if (!isNumber.test(quiz_id)) {
+        throw { status: 400, msg: "Invalid quiz_id specified" };
+    }
+    const quizQueryStr = `
+  SELECT * FROM quizzes 
+  WHERE quiz_id = $1
+  `;
+    const checkQuizExists = yield connection_1.default.query(quizQueryStr, [quiz_id]);
+    const foundQuiz = checkQuizExists.rows[0];
+    if (!foundQuiz) {
+        throw { status: 404, msg: "quiz_id not found" };
+    }
+    const userLikedQuery = `
+  SELECT * FROM likes 
+  WHERE user_id = $1 AND content_id = $2 AND content_type = 'quiz';
+`;
+    const queryResponse = yield connection_1.default.query(userLikedQuery, [user.user_id, quiz_id]);
+    const likedData = queryResponse.rows[0];
+    if ((likedData === null || likedData === void 0 ? void 0 : likedData.like_value) === 1) {
+        return { hasLiked: true };
+    }
+    else if ((likedData === null || likedData === void 0 ? void 0 : likedData.like_value) === -1) {
+        return { hasLiked: false };
+    }
+    else if (!likedData) {
+        return { hasLiked: null };
+    }
+});
+exports.fetchLikedStatus = fetchLikedStatus;

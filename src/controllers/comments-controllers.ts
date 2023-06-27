@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import {
   fetchComment,
+  fetchLikedComments,
   fetchQuizComments,
   insertComment,
   removeComment,
@@ -96,6 +97,29 @@ export const deleteComment = async (
         }
         await removeComment(comment_id);
         res.sendStatus(204);
+      } catch (err) {
+        next(err);
+      }
+    }
+  )(req, res, next);
+};
+
+export const likedCommentStatus = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  passport.authenticate(
+    "jwt",
+    { session: false },
+    async (err: Error, user: User, info: any) => {
+      try {
+        if (err || !user) {
+          return res.status(401).send({ msg: "Unauthorized" });
+        }
+        const { quiz_id } = req.params;
+        const likedStatus = await fetchLikedComments(quiz_id, user);
+        res.status(200).send({ likedStatus });
       } catch (err) {
         next(err);
       }

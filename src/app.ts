@@ -15,12 +15,14 @@ import {
   deleteQuiz,
   getQuiz,
   getQuizzes,
+  likedQuizStatus,
   patchQuiz,
   postQuiz,
 } from "./controllers/quizzes-controllers";
 import {
   deleteComment,
   getQuizComments,
+  likedCommentStatus,
   patchComment,
   postComment,
 } from "./controllers/comments-controllers";
@@ -60,6 +62,10 @@ app.patch("/api/comments/:comment_id", patchComment);
 app.delete("/api/quizzes/:quiz_id", deleteQuiz);
 
 app.delete("/api/comments/:comment_id", deleteComment);
+
+app.get("/api/quizzes/:quiz_id/user/likes", likedQuizStatus);
+
+app.get("/api/quizzes/:quiz_id/comments/user/likes", likedCommentStatus);
 
 app.use("/*", handlePathNotFound);
 

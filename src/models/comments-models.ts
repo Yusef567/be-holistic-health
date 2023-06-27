@@ -215,3 +215,55 @@ export const removeComment = async (comment_id: string) => {
 
   return true;
 };
+
+export const fetchLikedComments = async (quiz_id: string, user: User) => {
+  const isNumber = /^[0-9]+$/;
+
+  if (!isNumber.test(quiz_id)) {
+    throw { status: 400, msg: "Invalid quiz_id specified" };
+  }
+
+  const quizQueryStr = `
+  SELECT * FROM quizzes 
+  WHERE quiz_id = $1
+  `;
+  const checkQuizExists = await db.query(quizQueryStr, [quiz_id]);
+  const foundQuiz = checkQuizExists.rows[0];
+
+  if (!foundQuiz) {
+    throw { status: 404, msg: "quiz_id not found" };
+  }
+
+  const commentsQuery = `
+  SELECT * FROM comments WHERE quiz_id = $1
+  `;
+  const { rows } = await db.query(commentsQuery, [quiz_id]);
+  const commentIds = rows.map(({ comment_id }) => comment_id);
+
+  const likedCommentsQuery = `
+  SELECT *, content_id AS comment_id FROM likes
+  WHERE content_id = ANY($1::int[]) AND content_type = 'comment'
+  AND user_id = $2
+  `;
+  const likedCommentsResponse = await db.query(likedCommentsQuery, [
+    commentIds,
+    user.user_id,
+  ]);
+  const likedData = likedCommentsResponse.rows;
+
+  const likesData = commentIds.map((comment_id) => {
+    const votedComment = likedData.find(
+      (comment) => comment.comment_id === comment_id
+    );
+    if (votedComment) {
+      if (votedComment.like_value === 1) {
+        return { comment_id, hasLiked: true };
+      } else if (votedComment.like_value === -1) {
+        return { comment_id, hasLiked: false };
+      }
+    }
+    return { comment_id, hasLiked: null };
+  });
+
+  return { quiz_id: Number(quiz_id), votes: likesData };
+};
