@@ -5,7 +5,8 @@ import request from "supertest";
 import app from "../app";
 import jwt from "jsonwebtoken";
 import "jest-sorted";
-import { Category, Comment, FirstQuiz } from "../interfaces/interfaces";
+import { Category, FirstQuiz, Comment } from "../interfaces/interfaces";
+import endpoints from "../endpoints.json";
 
 let accessToken: string;
 let refreshToken: string;
@@ -17,7 +18,7 @@ beforeAll(async () => {
   };
 
   const response = await request(app)
-    .post("/api/login")
+    .post("/api/auth/login")
     .send(testUser)
     .expect(200);
 
@@ -37,7 +38,7 @@ afterAll(() => {
   db.end();
 });
 
-describe("POST /api/login", () => {
+describe("POST /api/auth/login", () => {
   it("200: should respond with an access token and set the refresh token as an HTTP-only cookie", async () => {
     const testUser = {
       username: "Alex456",
@@ -45,7 +46,7 @@ describe("POST /api/login", () => {
     };
 
     const response = await request(app)
-      .post("/api/login")
+      .post("/api/auth/login")
       .send(testUser)
       .expect(200);
 
@@ -58,7 +59,10 @@ describe("POST /api/login", () => {
     expect(typeof refreshTokenCookie).toBe("string");
   });
   it("400: should respond with a msg if missing the username or password", async () => {
-    const { body } = await request(app).post("/api/login").send({}).expect(400);
+    const { body } = await request(app)
+      .post("/api/auth/login")
+      .send({})
+      .expect(400);
 
     expect(body.msg).toBe("Username and password are required");
   });
@@ -69,7 +73,7 @@ describe("POST /api/login", () => {
     };
 
     const { body } = await request(app)
-      .post("/api/login")
+      .post("/api/auth/login")
       .send(testUser)
       .expect(401);
 
@@ -82,7 +86,7 @@ describe("POST /api/login", () => {
     };
 
     const { body } = await request(app)
-      .post("/api/login")
+      .post("/api/auth/login")
       .send(testUser)
       .expect(401);
 
@@ -90,12 +94,12 @@ describe("POST /api/login", () => {
   });
 });
 
-describe("GET /api/protected", () => {
+describe("GET /api/auth/protected", () => {
   it("200: should respond with a msg of Authenticated successfully if the JWT access token is valid", async () => {
     const {
       body: { msg },
     } = await request(app)
-      .get("/api/protected")
+      .get("/api/auth/protected")
       .set("Authorization", `Bearer ${accessToken}`)
       .expect(200);
 
@@ -107,7 +111,7 @@ describe("GET /api/protected", () => {
     const {
       body: { msg },
     } = await request(app)
-      .get("/api/protected")
+      .get("/api/auth/protected")
       .set("Authorization", `Bearer ${invalidToken}`)
       .expect(401);
 
@@ -117,7 +121,7 @@ describe("GET /api/protected", () => {
     const {
       body: { msg },
     } = await request(app)
-      .get("/api/protected")
+      .get("/api/auth/protected")
       .set("Authorization", "Bearer")
       .expect(401);
 
@@ -135,7 +139,7 @@ describe("GET /api/protected", () => {
     const {
       body: { msg },
     } = await request(app)
-      .get("/api/protected")
+      .get("/api/auth/protected")
       .set("Authorization", `Bearer ${expiredAccessToken}`)
       .expect(401);
 
@@ -198,10 +202,10 @@ describe("POST /api/users", () => {
   });
 });
 
-describe("POST /api/refresh-token", () => {
+describe("POST /api/auth/refresh-token", () => {
   it("200: should respond with a new access token if passed a valid refresh token", async () => {
     const { body } = await request(app)
-      .post("/api/refresh-token")
+      .post("/api/auth/refresh-token")
       .set("Cookie", `refreshToken=${refreshToken}`)
       .expect(200);
 
@@ -209,14 +213,16 @@ describe("POST /api/refresh-token", () => {
     expect(typeof accessToken).toBe("string");
 
     const protectedRequest = await request(app)
-      .get("/api/protected")
+      .get("/api/auth/protected")
       .set("Authorization", `Bearer ${accessToken}`)
       .expect(200);
 
     expect(protectedRequest.body.msg).toBe("Authenticated successfully");
   });
   it("401: should respond with a msg if the refresh token cookie is missing", async () => {
-    const { body } = await request(app).post("/api/refresh-token").expect(401);
+    const { body } = await request(app)
+      .post("/api/auth/refresh-token")
+      .expect(401);
 
     expect(body.msg).toBe("Refresh token not found");
   });
@@ -224,7 +230,7 @@ describe("POST /api/refresh-token", () => {
     const invalidRefreshToken = "hello-world";
 
     const { body } = await request(app)
-      .post("/api/refresh-token")
+      .post("/api/auth/refresh-token")
       .set("Cookie", `refreshToken=${invalidRefreshToken}`)
       .expect(401);
 
@@ -238,7 +244,7 @@ describe("POST /api/refresh-token", () => {
     );
 
     const { body } = await request(app)
-      .post("/api/refresh-token")
+      .post("/api/auth/refresh-token")
       .set("Cookie", `refreshToken=${expiredRefreshToken}`)
       .expect(401);
 
@@ -246,7 +252,7 @@ describe("POST /api/refresh-token", () => {
   });
 });
 
-describe("POST /api/logout", () => {
+describe("POST /api/auth/logout", () => {
   it("200: should respond with a success msg if the refresh token is valid", async () => {
     const testUser = {
       username: "Tom123",
@@ -254,7 +260,7 @@ describe("POST /api/logout", () => {
     };
 
     const loginResponse = await request(app)
-      .post("/api/login")
+      .post("/api/auth/login")
       .send(testUser)
       .expect(200);
 
@@ -265,7 +271,7 @@ describe("POST /api/logout", () => {
     const refreshTokenStr = refreshTokenCookie.split("=")[1].split(";")[0];
 
     const logoutResponse = await request(app)
-      .post("/api/logout")
+      .post("/api/auth/logout")
       .set("Cookie", `refreshToken=${refreshTokenStr}`)
       .expect(200);
 
@@ -279,7 +285,7 @@ describe("POST /api/logout", () => {
     };
 
     const loginResponse = await request(app)
-      .post("/api/login")
+      .post("/api/auth/login")
       .send(testUser)
       .expect(200);
 
@@ -290,7 +296,7 @@ describe("POST /api/logout", () => {
     const refreshTokenStr = refreshTokenCookie.split("=")[1].split(";")[0];
 
     const logoutResponse = await request(app)
-      .post("/api/logout")
+      .post("/api/auth/logout")
       .set("Cookie", `refreshToken=${refreshTokenStr}`)
       .expect(200);
 
@@ -309,7 +315,7 @@ describe("POST /api/logout", () => {
     };
 
     const loginResponse = await request(app)
-      .post("/api/login")
+      .post("/api/auth/login")
       .send(testUser)
       .expect(200);
 
@@ -320,7 +326,7 @@ describe("POST /api/logout", () => {
     const refreshTokenStr = refreshTokenCookie.split("=")[1].split(";")[0];
 
     await request(app)
-      .post("/api/logout")
+      .post("/api/auth/logout")
       .set("Cookie", `refreshToken=${refreshTokenStr}`)
       .expect(200);
 
@@ -330,13 +336,13 @@ describe("POST /api/logout", () => {
     expect(user.rows[0].refresh_token).toBeNull();
   });
   it("401: should respond with a msg if refresh token is missing", async () => {
-    const { body } = await request(app).post("/api/logout").expect(401);
+    const { body } = await request(app).post("/api/auth/logout").expect(401);
 
     expect(body.msg).toBe("Refresh token not found");
   });
   it("401: should respond with a msg if refresh token is invalid", async () => {
     const { body } = await request(app)
-      .post("/api/logout")
+      .post("/api/auth/logout")
       .set("Cookie", "refreshToken=hello-world")
       .expect(401);
 
@@ -350,7 +356,7 @@ describe("POST /api/logout", () => {
     );
 
     const { body } = await request(app)
-      .post("/api/logout")
+      .post("/api/auth/logout")
       .set("Cookie", `refreshToken=${expiredRefreshToken}`)
       .expect(401);
 
@@ -677,11 +683,9 @@ describe("GET /api/quizzes/:quiz_id", () => {
   });
 });
 
-describe("GET /api/quizzes/:quiz_id/comments", () => {
+describe("GET /api/comments/quiz/:quiz_id", () => {
   it("200: should respond with an array of comments for the quiz_id passed", async () => {
-    const { body } = await request(app)
-      .get("/api/quizzes/1/comments")
-      .expect(200);
+    const { body } = await request(app).get("/api/comments/quiz/1").expect(200);
 
     const { comments } = body;
     expect(comments).toBeInstanceOf(Array);
@@ -699,9 +703,7 @@ describe("GET /api/quizzes/:quiz_id/comments", () => {
     });
   });
   it("200: should respond with the comments ordered by newest in descending order", async () => {
-    const { body } = await request(app)
-      .get("/api/quizzes/1/comments")
-      .expect(200);
+    const { body } = await request(app).get("/api/comments/quiz/1").expect(200);
 
     const { comments } = body;
     expect(comments).toBeSortedBy("created_at", {
@@ -709,9 +711,7 @@ describe("GET /api/quizzes/:quiz_id/comments", () => {
     });
   });
   it("200: should respond with an empty array if passed a quiz_id that has no comments", async () => {
-    const { body } = await request(app)
-      .get("/api/quizzes/2/comments")
-      .expect(200);
+    const { body } = await request(app).get("/api/comments/quiz/2").expect(200);
 
     const { comments } = body;
     expect(comments).toBeInstanceOf(Array);
@@ -720,21 +720,21 @@ describe("GET /api/quizzes/:quiz_id/comments", () => {
   it("400: should repsond a with a msg if passed an invalid quiz_id", async () => {
     const {
       body: { msg },
-    } = await request(app).get("/api/quizzes/four/comments").expect(400);
+    } = await request(app).get("/api/comments/quiz/four").expect(400);
 
     expect(msg).toBe("Invalid quiz_id specified");
   });
   it("404: should respond with a msg if passed a valid but non existent quiz_id", async () => {
     const {
       body: { msg },
-    } = await request(app).get("/api/quizzes/20/comments").expect(404);
+    } = await request(app).get("/api/comments/quiz/20").expect(404);
 
     expect(msg).toBe("quiz_id not found");
   });
-  describe("GET /api/quizzes/:quiz_id/comments?pagination", () => {
+  describe("GET /api/comments/quiz/:quiz_id?pagination", () => {
     it("200: should respond with a default limit of 10 comments and a total count", async () => {
       const { body } = await request(app)
-        .get("/api/quizzes/1/comments")
+        .get("/api/comments/quiz/1")
         .expect(200);
 
       const { comments, totalCount } = body;
@@ -744,7 +744,7 @@ describe("GET /api/quizzes/:quiz_id/comments", () => {
     });
     it("200: should respond with the correct amount of comments when passed a limit ", async () => {
       const { body } = await request(app)
-        .get("/api/quizzes/1/comments?limit=5")
+        .get("/api/comments/quiz/1?limit=5")
         .expect(200);
 
       const { comments, totalCount } = body;
@@ -754,7 +754,7 @@ describe("GET /api/quizzes/:quiz_id/comments", () => {
     });
     it("200: should respond with the correct amount of comments when passed a page", async () => {
       const { body } = await request(app)
-        .get("/api/quizzes/1/comments?limit=4&p=3")
+        .get("/api/comments/quiz/1?limit=4&p=3")
         .expect(200);
 
       const { comments, totalCount } = body;
@@ -764,7 +764,7 @@ describe("GET /api/quizzes/:quiz_id/comments", () => {
     });
     it("200: should respond with an empty array when passed a page that exceeds the available pages", async () => {
       const { body } = await request(app)
-        .get("/api/quizzes/1/comments?limit=5&p=3")
+        .get("/api/comments/quiz/1?limit=5&p=3")
         .expect(200);
 
       const { comments, totalCount } = body;
@@ -777,7 +777,7 @@ describe("GET /api/quizzes/:quiz_id/comments", () => {
       const {
         body: { msg },
       } = await request(app)
-        .get("/api/quizzes/1/comments?limit=five&p=1")
+        .get("/api/comments/quiz/1?limit=five&p=1")
         .expect(400);
 
       expect(msg).toBe("Invalid limit query specified");
@@ -786,7 +786,7 @@ describe("GET /api/quizzes/:quiz_id/comments", () => {
       const {
         body: { msg },
       } = await request(app)
-        .get("/api/quizzes/1/comments?limit=5&p=first")
+        .get("/api/comments/quiz/1?limit=5&p=first")
         .expect(400);
 
       expect(msg).toBe("Invalid page query specified");
@@ -1598,15 +1598,15 @@ describe("POST /api/quizzes", () => {
   });
 });
 
-describe("POST /api/quizzes/:quiz_id/comments", () => {
-  testProtectedEndpoint("/api/quizzes/6/comments", "post");
+describe("POST /api/comments/quiz/:quiz_id", () => {
+  testProtectedEndpoint("/api/comments/quiz/6", "post");
   it("201: should respond with the newly created comment", async () => {
     const newComment = {
       comment_text: "Great quiz!",
     };
 
     const { body } = await request(app)
-      .post("/api/quizzes/6/comments")
+      .post("/api/comments/quiz/6")
       .set("Authorization", `Bearer ${accessToken}`)
       .send(newComment)
       .expect(201);
@@ -1630,7 +1630,7 @@ describe("POST /api/quizzes/:quiz_id/comments", () => {
     const {
       body: { msg },
     } = await request(app)
-      .post("/api/quizzes/five/comments")
+      .post("/api/comments/quiz/five")
       .set("Authorization", `Bearer ${accessToken}`)
       .send(newComment)
       .expect(400);
@@ -1645,7 +1645,7 @@ describe("POST /api/quizzes/:quiz_id/comments", () => {
     const {
       body: { msg },
     } = await request(app)
-      .post("/api/quizzes/6/comments")
+      .post("/api/comments/quiz/6")
       .set("Authorization", `Bearer ${accessToken}`)
       .send(newComment)
       .expect(400);
@@ -1660,7 +1660,7 @@ describe("POST /api/quizzes/:quiz_id/comments", () => {
     const {
       body: { msg },
     } = await request(app)
-      .post("/api/quizzes/6/comments")
+      .post("/api/comments/quiz/6")
       .set("Authorization", `Bearer ${accessToken}`)
       .send(newComment)
       .expect(400);
@@ -1671,7 +1671,7 @@ describe("POST /api/quizzes/:quiz_id/comments", () => {
     const {
       body: { msg },
     } = await request(app)
-      .post("/api/quizzes/6/comments")
+      .post("/api/comments/quiz/6")
       .set("Authorization", `Bearer ${accessToken}`)
       .send({})
       .expect(400);
@@ -1686,7 +1686,7 @@ describe("POST /api/quizzes/:quiz_id/comments", () => {
     const {
       body: { msg },
     } = await request(app)
-      .post("/api/quizzes/20/comments")
+      .post("/api/comments/quiz/20")
       .set("Authorization", `Bearer ${accessToken}`)
       .send(newComment)
       .expect(404);
@@ -2029,7 +2029,7 @@ describe("DELETE /api/quizzes/:quiz_id", () => {
     expect(msg).toBe("quiz_id not found");
 
     const commentsRequest = await request(app)
-      .get("/api/quizzes/1/comments")
+      .get("/api/comments/quiz/1")
       .expect(404);
 
     expect(commentsRequest.body.msg).toBe("quiz_id not found");
@@ -2200,11 +2200,11 @@ describe("GET /api/quizzes/:quiz_id/user/likes", () => {
   });
 });
 
-describe("GET /api/quizzes/:quiz_id/comments/user/likes", () => {
-  testProtectedEndpoint("/api/quizzes/1/comments/user/likes", "get");
+describe("GET /api/comments/quiz/:quiz_id/user/likes", () => {
+  testProtectedEndpoint("/api/comments/quiz/1/user/likes", "get");
   it("200: should respond with a vote array of the users votes on the comments for the quiz_id", async () => {
     const { body } = await request(app)
-      .get("/api/quizzes/1/comments/user/likes")
+      .get("/api/comments/quiz/1/user/likes")
       .set("Authorization", `Bearer ${accessToken}`)
       .expect(200);
 
@@ -2258,7 +2258,7 @@ describe("GET /api/quizzes/:quiz_id/comments/user/likes", () => {
   });
   it("200: should respond with an empty votes array if quiz_id has no comments", async () => {
     const { body } = await request(app)
-      .get("/api/quizzes/2/comments/user/likes")
+      .get("/api/comments/quiz/2/user/likes")
       .set("Authorization", `Bearer ${accessToken}`)
       .expect(200);
 
@@ -2271,7 +2271,7 @@ describe("GET /api/quizzes/:quiz_id/comments/user/likes", () => {
     const {
       body: { msg },
     } = await request(app)
-      .get("/api/quizzes/five/comments/user/likes")
+      .get("/api/comments/quiz/five/user/likes")
       .set("Authorization", `Bearer ${accessToken}`)
       .expect(400);
 
@@ -2281,10 +2281,19 @@ describe("GET /api/quizzes/:quiz_id/comments/user/likes", () => {
     const {
       body: { msg },
     } = await request(app)
-      .get("/api/quizzes/15/comments/user/likes")
+      .get("/api/comments/quiz/15/user/likes")
       .set("Authorization", `Bearer ${accessToken}`)
       .expect(404);
 
     expect(msg).toBe("quiz_id not found");
+  });
+});
+
+describe("GET /api", () => {
+  it("200: should respond with JSON representation of all the available endpoints", async () => {
+    const { body } = await request(app).get("/api").expect(200);
+
+    const { apiEndpoints } = body;
+    expect(apiEndpoints).toEqual(endpoints);
   });
 });

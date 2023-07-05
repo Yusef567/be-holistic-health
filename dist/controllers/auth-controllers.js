@@ -12,10 +12,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.logoutUser = exports.refreshTokens = exports.loginUser = void 0;
+exports.logoutUser = exports.refreshTokens = exports.protectedController = exports.loginUser = void 0;
 const auth_models_1 = require("../models/auth-models");
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const connection_1 = __importDefault(require("../connection"));
+const passport_config_1 = __importDefault(require("../passport-config"));
 if (!process.env.REFRESH_TOKEN_SECRET) {
     throw new Error("REFRESH_TOKEN_SECRET not set");
 }
@@ -40,6 +41,15 @@ const loginUser = (req, res, next) => __awaiter(void 0, void 0, void 0, function
     }
 });
 exports.loginUser = loginUser;
+const protectedController = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    passport_config_1.default.authenticate("jwt", { session: false }, (err, user, info) => {
+        if (err || !user) {
+            return res.status(401).send({ msg: "Unauthorized" });
+        }
+        res.status(200).send({ msg: "Authenticated successfully" });
+    })(req, res);
+});
+exports.protectedController = protectedController;
 const refreshTokens = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const refreshToken = req.cookies.refreshToken;

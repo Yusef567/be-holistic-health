@@ -1,8 +1,5 @@
 import express, { Application } from "express";
 import cookieParser from "cookie-parser";
-import { loginUser, logoutUser } from "./controllers/auth-controllers";
-import { postUser, protectedController } from "./controllers/users-controllers";
-import { refreshTokens } from "./controllers/auth-controllers";
 import {
   handle500Errors,
   handleCustomErrors,
@@ -10,22 +7,13 @@ import {
   handlePSQL400sErrors,
   handlePathNotFound,
 } from "./middleware/error-handlers";
-import { getCategories } from "./controllers/categories-controllers";
-import {
-  deleteQuiz,
-  getQuiz,
-  getQuizzes,
-  likedQuizStatus,
-  patchQuiz,
-  postQuiz,
-} from "./controllers/quizzes-controllers";
-import {
-  deleteComment,
-  getQuizComments,
-  likedCommentStatus,
-  patchComment,
-  postComment,
-} from "./controllers/comments-controllers";
+
+import authRoutes from "./routes/auth-routes";
+import categoriesRoutes from "./routes/categories-routes";
+import commentsRoutes from "./routes/comments-routes";
+import quizzesRoutes from "./routes/quizzes-routes";
+import usersRoutes from "./routes/users-routes";
+import apiEndpointsRoutes from "./routes/api-endpoints-routes";
 
 const app: Application = express();
 
@@ -33,39 +21,17 @@ app.use(express.json());
 
 app.use(cookieParser());
 
-app.post("/api/login", loginUser);
+app.use("/api/auth", authRoutes);
 
-app.get("/api/protected", protectedController);
+app.use("/api/categories", categoriesRoutes);
 
-app.post("/api/users", postUser);
+app.use("/api/comments", commentsRoutes);
 
-app.post("/api/refresh-token", refreshTokens);
+app.use("/api/quizzes", quizzesRoutes);
 
-app.post("/api/logout", logoutUser);
+app.use("/api/users", usersRoutes);
 
-app.get("/api/categories", getCategories);
-
-app.get("/api/quizzes", getQuizzes);
-
-app.get("/api/quizzes/:quiz_id", getQuiz);
-
-app.get("/api/quizzes/:quiz_id/comments", getQuizComments);
-
-app.post("/api/quizzes", postQuiz);
-
-app.post("/api/quizzes/:quiz_id/comments", postComment);
-
-app.patch("/api/quizzes/:quiz_id", patchQuiz);
-
-app.patch("/api/comments/:comment_id", patchComment);
-
-app.delete("/api/quizzes/:quiz_id", deleteQuiz);
-
-app.delete("/api/comments/:comment_id", deleteComment);
-
-app.get("/api/quizzes/:quiz_id/user/likes", likedQuizStatus);
-
-app.get("/api/quizzes/:quiz_id/comments/user/likes", likedCommentStatus);
+app.use("/api", apiEndpointsRoutes);
 
 app.use("/*", handlePathNotFound);
 
