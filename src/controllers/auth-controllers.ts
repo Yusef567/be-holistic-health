@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import { login } from "../models/auth-models";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import db from "../connection";
+import passport from "../passport-config";
 
 if (!process.env.REFRESH_TOKEN_SECRET) {
   throw new Error("REFRESH_TOKEN_SECRET not set");
@@ -31,6 +32,26 @@ export const loginUser = async (
   } catch (err) {
     next(err);
   }
+};
+
+interface User {
+  user_id: number;
+  username: string;
+  password: string;
+  salt: string;
+}
+
+export const protectedController = async (req: Request, res: Response) => {
+  passport.authenticate(
+    "jwt",
+    { session: false },
+    (err: Error, user: User, info: any) => {
+      if (err || !user) {
+        return res.status(401).send({ msg: "Unauthorized" });
+      }
+      res.status(200).send({ msg: "Authenticated successfully" });
+    }
+  )(req, res);
 };
 
 export const refreshTokens = async (

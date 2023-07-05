@@ -8,25 +8,18 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.postUser = void 0;
-const users_models_1 = require("../models/users-models");
-const postUser = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+exports.fetchApiEndpoints = void 0;
+const endpoints_json_1 = __importDefault(require("../endpoints.json"));
+const fetchApiEndpoints = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const newUser = req.body;
-        const { username, password } = newUser;
-        if (!username || !password) {
-            return res
-                .status(400)
-                .send({ msg: "Username and password are required" });
-        }
-        const createdUser = yield (0, users_models_1.insertUser)(username, password);
-        return res.status(201).send({
-            user: createdUser,
-        });
+        res.status(200).send({ apiEndpoints: endpoints_json_1.default });
     }
     catch (err) {
         next(err);
     }
 });
-exports.postUser = postUser;
+exports.fetchApiEndpoints = fetchApiEndpoints;
