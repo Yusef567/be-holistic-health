@@ -11,5 +11,10 @@ const usersData = [
         password: "$2b$10$8FoesbWaifWHYhTYtVd3puVttGnCprtCzMFewc9xUrOLIMqKKUO7W",
         salt: "$2b$10$8FoesbWaifWHYhTYtVd3pu",
     },
+    {
+        username: "Mark@healthcareclinic.com",
+        salt: "$2b$10$6Oq8zEinHDTOePmXeNZ2Wu",
+        password: "$2b$10$6Oq8zEinHDTOePmXeNZ2WuhySU5b7Gz5x4iIULHPcwgyk2.kZhDNm",
+    },
 ];
 exports.default = usersData;

@@ -20,8 +20,9 @@ const getQuizzes = (req, res, next) => __awaiter(void 0, void 0, void 0, functio
     try {
         const { category, sort_by, order, limit, p, } = req.query;
         if (category) {
-            yield (0, categories_models_1.checkCategory)(category);
-            const { quizzes, totalCount } = yield (0, quizzes_models_1.fetchQuizzes)(category, sort_by, order, limit, p);
+            const formattedCategory = category.replace(/-/g, " ");
+            yield (0, categories_models_1.checkCategory)(formattedCategory);
+            const { quizzes, totalCount } = yield (0, quizzes_models_1.fetchQuizzes)(formattedCategory, sort_by, order, limit, p);
             res.status(200).send({ quizzes, totalCount });
         }
         else {

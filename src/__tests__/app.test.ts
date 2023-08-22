@@ -10,6 +10,7 @@ import endpoints from "../endpoints.json";
 
 let accessToken: string;
 let refreshToken: string;
+let quizPostToken: string;
 
 beforeAll(async () => {
   const testUser = {
@@ -28,6 +29,18 @@ beforeAll(async () => {
     (cookie: string) => cookie.includes("refreshToken")
   );
   refreshToken = refreshTokenCookie.split("=")[1].split(";")[0];
+
+  const healthcareProfessional = {
+    username: "Mark@healthcareclinic.com",
+    password: "chocolate123",
+  };
+
+  const loginResponse = await request(app)
+    .post("/api/auth/login")
+    .send(healthcareProfessional)
+    .expect(200);
+
+  quizPostToken = loginResponse.body.accessToken;
 });
 
 beforeEach(() => {
@@ -160,7 +173,7 @@ describe("POST /api/users", () => {
       .expect(201);
 
     const { user } = body;
-    expect(user).toEqual({ user_id: 3, username: "John123" });
+    expect(user).toEqual({ user_id: 4, username: "John123" });
   });
   it("400: should repsond with a msg if the username or password properties are missing", async () => {
     const newUser = {
@@ -936,8 +949,8 @@ describe("POST /api/quizzes", () => {
       quiz_id: 11,
       quiz_name: "Travel Destinations Trivia",
       category: "Travel",
-      user_id: 2,
-      username: "Alex456",
+      user_id: 3,
+      username: "Mark@healthcareclinic.com",
       release_date: expect.any(String),
       description:
         "Test your knowledge of popular travel destinations around the world with this trivia quiz.",
@@ -1035,7 +1048,7 @@ describe("POST /api/quizzes", () => {
 
     const { body } = await request(app)
       .post("/api/quizzes")
-      .set("Authorization", `Bearer ${accessToken}`)
+      .set("Authorization", `Bearer ${quizPostToken}`)
       .send(newQuiz)
       .expect(201);
 
@@ -1131,7 +1144,7 @@ describe("POST /api/quizzes", () => {
       body: { msg },
     } = await request(app)
       .post("/api/quizzes")
-      .set("Authorization", `Bearer ${accessToken}`)
+      .set("Authorization", `Bearer ${quizPostToken}`)
       .send(newQuiz)
       .expect(400);
 
@@ -1200,7 +1213,7 @@ describe("POST /api/quizzes", () => {
       body: { msg },
     } = await request(app)
       .post("/api/quizzes")
-      .set("Authorization", `Bearer ${accessToken}`)
+      .set("Authorization", `Bearer ${quizPostToken}`)
       .send(newQuiz)
       .expect(400);
 
@@ -1211,7 +1224,7 @@ describe("POST /api/quizzes", () => {
       body: { msg },
     } = await request(app)
       .post("/api/quizzes")
-      .set("Authorization", `Bearer ${accessToken}`)
+      .set("Authorization", `Bearer ${quizPostToken}`)
       .send({})
       .expect(400);
 
@@ -1302,7 +1315,7 @@ describe("POST /api/quizzes", () => {
       body: { msg },
     } = await request(app)
       .post("/api/quizzes")
-      .set("Authorization", `Bearer ${accessToken}`)
+      .set("Authorization", `Bearer ${quizPostToken}`)
       .send(newQuiz)
       .expect(400);
 
@@ -1398,7 +1411,7 @@ describe("POST /api/quizzes", () => {
       body: { msg },
     } = await request(app)
       .post("/api/quizzes")
-      .set("Authorization", `Bearer ${accessToken}`)
+      .set("Authorization", `Bearer ${quizPostToken}`)
       .send(newQuiz)
       .expect(400);
 
@@ -1494,11 +1507,109 @@ describe("POST /api/quizzes", () => {
       body: { msg },
     } = await request(app)
       .post("/api/quizzes")
-      .set("Authorization", `Bearer ${accessToken}`)
+      .set("Authorization", `Bearer ${quizPostToken}`)
       .send(newQuiz)
       .expect(400);
 
     expect(msg).toBe("Each question must have exactly one correct answer");
+  });
+  it("403: should respond with a msg if the user is not a healthcare professional", async () => {
+    const questionsAndAnswersRequest = [
+      {
+        question_text: "Which city is known as the 'Eternal City'?",
+        answers: [
+          { answer_text: "Rome", is_correct: true },
+          { answer_text: "Paris", is_correct: false },
+          { answer_text: "Athens", is_correct: false },
+          { answer_text: "Cairo", is_correct: false },
+        ],
+      },
+      {
+        question_text: "What is the largest island in the Mediterranean Sea?",
+        answers: [
+          { answer_text: "Sicily", is_correct: true },
+          { answer_text: "Crete", is_correct: false },
+          { answer_text: "Corsica", is_correct: false },
+          { answer_text: "Malta", is_correct: false },
+        ],
+      },
+      {
+        question_text: "In which country can you visit the Acropolis?",
+        answers: [
+          { answer_text: "Greece", is_correct: true },
+          { answer_text: "Italy", is_correct: false },
+          { answer_text: "Spain", is_correct: false },
+          { answer_text: "Turkey", is_correct: false },
+        ],
+      },
+      {
+        question_text: "Which country is famous for the Great Barrier Reef?",
+        answers: [
+          { answer_text: "Australia", is_correct: true },
+          { answer_text: "Mexico", is_correct: false },
+          { answer_text: "Thailand", is_correct: false },
+          { answer_text: "Brazil", is_correct: false },
+        ],
+      },
+      {
+        question_text: "What is the capital city of Canada?",
+        answers: [
+          { answer_text: "Ottawa", is_correct: true },
+          { answer_text: "Toronto", is_correct: false },
+          { answer_text: "Montreal", is_correct: false },
+          { answer_text: "Vancouver", is_correct: false },
+        ],
+      },
+      {
+        question_text: "Which city is known for its famous Golden Gate Bridge?",
+        answers: [
+          { answer_text: "San Francisco", is_correct: true },
+          { answer_text: "New York City", is_correct: false },
+          { answer_text: "Los Angeles", is_correct: false },
+          { answer_text: "Seattle", is_correct: false },
+        ],
+      },
+      {
+        question_text: "What is the official language of Switzerland?",
+        answers: [
+          { answer_text: "German", is_correct: true },
+          { answer_text: "French", is_correct: false },
+          { answer_text: "Italian", is_correct: false },
+          { answer_text: "Romansh", is_correct: false },
+        ],
+      },
+      {
+        question_text: "Which continent is the largest in terms of land area?",
+        answers: [
+          { answer_text: "Asia", is_correct: true },
+          { answer_text: "Africa", is_correct: false },
+          { answer_text: "North America", is_correct: false },
+          { answer_text: "South America", is_correct: false },
+        ],
+      },
+    ];
+
+    const newQuiz = {
+      quiz_name: "Travel Destinations Trivia",
+      category: "Travel",
+      description:
+        "Test your knowledge of popular travel destinations around the world with this trivia quiz.",
+      quiz_img:
+        "https://images.pexels.com/photos/1117132/pexels-photo-1117132.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
+      questions: [...questionsAndAnswersRequest],
+    };
+
+    const {
+      body: { msg },
+    } = await request(app)
+      .post("/api/quizzes")
+      .set("Authorization", `Bearer ${accessToken}`)
+      .send(newQuiz)
+      .expect(403);
+
+    expect(msg).toBe(
+      "Only healthcare professionals are allowed to post quizzes"
+    );
   });
   it("404: should should respond with a msg if passed a non existent category", async () => {
     const questionsAndAnswersRequest = [
@@ -1590,7 +1701,7 @@ describe("POST /api/quizzes", () => {
       body: { msg },
     } = await request(app)
       .post("/api/quizzes")
-      .set("Authorization", `Bearer ${accessToken}`)
+      .set("Authorization", `Bearer ${quizPostToken}`)
       .send(newQuiz)
       .expect(404);
 

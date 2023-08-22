@@ -118,6 +118,13 @@ const insertQuiz = (quiz, user) => __awaiter(void 0, void 0, void 0, function* (
     else if (questions.length > 16) {
         throw { status: 400, msg: "Maximum limit of 16 questions exceeded" };
     }
+    const isHealthProfessional = /^[A-Z0-9]{1,}@healthcareclinic\.com$/i;
+    if (!isHealthProfessional.test(username)) {
+        throw {
+            status: 403,
+            msg: "Only healthcare professionals are allowed to post quizzes",
+        };
+    }
     const insertQuizQuery = `
     INSERT INTO quizzes (quiz_name, category, username, user_id, description, quiz_img)
     VALUES ($1, $2, $3, $4, $5, $6)
