@@ -1,182 +1,182 @@
 const quizData = [
   {
-    quiz_name: "Ancient Egypt Trivia",
-    category: "History",
+    quiz_name: "Essential Nutrition Facts",
+    category: "Nutrition and Diet",
     quiz_img:
-      "https://images.pexels.com/photos/3689859/pexels-photo-3689859.jpeg",
+      "https://images.pexels.com/photos/1128678/pexels-photo-1128678.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
     description:
-      "Test your knowledge of ancient Egyptian history with this trivia quiz. From their writing system to their famous pharaohs and their way of life, this quiz covers some of the most interesting aspects of ancient Egyptian civilization",
+      "Test your knowledge of nutrition and diet basics with this informative quiz. From macronutrients to healthy eating habits, this quiz covers essential topics for a balanced lifestyle.",
     username: "David",
   },
   {
-    quiz_name: "Ancient Civilizations Trivia",
-    category: "History",
+    quiz_name: "Healthy Eating Habits",
+    category: "Nutrition and Diet",
     quiz_img:
-      "https://images.pexels.com/photos/164336/pexels-photo-164336.jpeg",
+      "https://images.pexels.com/photos/6969266/pexels-photo-6969266.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
     description:
-      "This quiz tests your knowledge on the ancient civilizations of Greece and Rome. Answer questions related to famous buildings, philosophers, military formations, languages, and other historical facts. See how much you know about these important periods in human history.",
+      "Test your knowledge of healthy eating habits with this quiz. From portion control to mindful eating, this quiz covers essential strategies for maintaining a nutritious diet.",
     username: "David",
   },
   {
-    quiz_name: "Vikings Trivia Challenge",
-    category: "History",
+    quiz_name: "Exercise Fundamentals",
+    category: "Exercise and Physical Activity",
     quiz_img:
-      "https://images.pexels.com/photos/8876097/pexels-photo-8876097.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
+      "https://images.pexels.com/photos/39671/physiotherapy-weight-training-dumbbell-exercise-balls-39671.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
     description:
-      "Test your knowledge about the Vikings and their fascinating history with this trivia challenge. Answer questions about their origins, customs, and accomplishments, and see how much you know about these legendary seafarers.",
+      "Test your knowledge of exercise basics and physical activity with this informative quiz. From different types of exercises to their benefits, this quiz covers essential concepts for a healthy lifestyle.",
     username: "David",
   },
   {
-    quiz_name: "World War History Trivia",
-    category: "History",
+    quiz_name: "Cardiovascular Fitness Insights",
+    category: "Exercise and Physical Activity",
     quiz_img:
-      "https://images.pexels.com/photos/1876620/pexels-photo-1876620.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
+      "https://images.pexels.com/photos/176903/pexels-photo-176903.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
     description:
-      "Test your knowledge about World War I and II with this quiz. The quiz consists of 8 questions that cover important events, treaties, and personalities of the two world wars.Answer the questions and find out how much you know about the world wars",
+      "Test your knowledge of cardiovascular health and fitness with this informative quiz. From heart health to aerobic exercises, this quiz covers essential concepts for a strong cardiovascular system.",
     username: "David",
   },
   {
-    quiz_name: "World Geography Trivia",
-    category: "Geography",
+    quiz_name: "Sleep Science",
+    category: "Sleep and Rest",
     quiz_img:
-      "https://images.pexels.com/photos/464391/pexels-photo-464391.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
+      "https://images.pexels.com/photos/1028741/pexels-photo-1028741.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
     description:
-      "This quiz tests your knowledge of geography by asking questions about the capital cities, mountain peaks, rivers, deserts, continents, and waterfalls of the world.",
-    username: "David",
-  },
-  {
-    quiz_name: "Borders and Peaks Geography Challenge",
-    category: "Geography",
-    quiz_img:
-      "https://images.pexels.com/photos/618833/pexels-photo-618833.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
-    description:
-      "Test your knowledge of world geography with this quiz,this quiz includes questions about the largest lakes, longest borders and highest mountain peaks.See how well you know the world and challenge yourself to get all the answers right!",
-    username: "David",
-  },
-  {
-    quiz_name: "Geography Genius Quiz",
-    category: "Geography",
-    quiz_img:
-      "https://images.pexels.com/photos/2929906/pexels-photo-2929906.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
-    description:
-      "Test your knowledge of world geography with this quiz. Answer questions about some of the smallest and most densely populated countries, capital cities,rivers and mountains.See how much you know about the world around us!",
-    username: "David",
-  },
-  {
-    quiz_name: "Capital Conundrum Quiz",
-    category: "Geography",
-    quiz_img:
-      "https://images.pexels.com/photos/163194/old-retro-antique-vintage-163194.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
-    description:
-      "This quiz that will take you on a journey around the world with questions that test your knowledge of various capital cities.",
-    username: "David",
-  },
-  {
-    quiz_name: "Mountains of the World Quiz",
-    category: "Geography",
-    quiz_img:
-      "https://images.pexels.com/photos/913215/pexels-photo-913215.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
-    description:
-      "Test your knowledge of the world's tallest peaks with this quiz on mountains from different continents,see how many of the highest peaks you know. ",
+      "Test your knowledge of sleep science and its importance for overall well-being with this informative quiz. From sleep cycles to sleep disorders, this quiz covers essential concepts for a good night's rest.",
     username: "Joe",
   },
   {
-    quiz_name: "Geography Basics Trivia",
-    category: "Geography",
+    quiz_name: "Restful Techniques",
+    category: "Sleep and Rest",
     quiz_img:
-      "https://images.pexels.com/photos/3769138/pexels-photo-3769138.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
+      "https://images.pexels.com/photos/140079/pexels-photo-140079.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
     description:
-      "This quiz tests your basic knowledge of geography. It includes questions about oceans, rivers, continents, and planets.",
+      "Explore effective restful techniques and strategies for better sleep and relaxation with this informative quiz. From mindfulness to sleep aids, this quiz covers essential concepts for achieving restful nights.",
     username: "Joe",
   },
   {
-    quiz_name: "Worldly Wonders Quiz",
-    category: "General knowledge",
+    quiz_name: "Heart Health Fundamentals",
+    category: "Heart Health",
     quiz_img:
-      "https://images.pexels.com/photos/998653/pexels-photo-998653.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
+      "https://images.pexels.com/photos/992816/pexels-photo-992816.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
     description:
-      "This quiz tests your basic knowledge, it includes questions about oceans, rivers, continents, and planets.",
+      "Test your knowledge of heart health and its importance for overall well-being with this informative quiz. From heart anatomy to cardiovascular diseases, this quiz covers essential concepts for a healthy heart.",
     username: "Joe",
   },
   {
-    quiz_name: "Brain Busters Challenge",
-    category: "General knowledge",
+    quiz_name: "Heartwise Living",
+    category: "Heart Health",
     quiz_img:
-      "https://images.pexels.com/photos/1370295/pexels-photo-1370295.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
+      "https://images.pexels.com/photos/1172019/pexels-photo-1172019.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
     description:
-      "Test your knowledge with this Trivia Challenge! This quiz features a variety of questions from different categories such as history, science, pop culture, and more.",
+      "Explore heart-healthy habits and lifestyle choices for optimal cardiovascular well-being with this informative quiz. From diet to exercise, this quiz covers essential concepts for maintaining a healthy heart.",
     username: "Joe",
   },
   {
-    quiz_name: "Knowledge Wisdom Quiz",
-    category: "General knowledge",
+    quiz_name: "Diabetes Insights",
+    category: "Diabetes",
     quiz_img:
-      "https://images.pexels.com/photos/1462226/pexels-photo-1462226.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
+      "https://images.pexels.com/photos/6942007/pexels-photo-6942007.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
     description:
-      "Test your knowledge on a variety of topics with this general knowledge Challenge quiz. From geography to pop culture, this quiz features questions on a wide range of subjects.",
-    username: "Joe",
-  },
-  {
-    quiz_name: "Time Warp Trivia",
-    category: "General knowledge",
-    quiz_img:
-      "https://images.pexels.com/photos/1799987/pexels-photo-1799987.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
-    description:
-      "Test your general knowledge with this quiz that covers a variety of topics, including architecture, geography, movies, history, and more.",
-    username: "Joe",
-  },
-  {
-    quiz_name: "Game On Sports Quiz",
-    category: "Sports",
-    quiz_img:
-      "https://images.pexels.com/photos/236937/pexels-photo-236937.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
-    description:
-      "Test your knowledge of sports history and iconic moments with this quiz that covers various dates and events of different sports.",
-    username: "Joe",
-  },
-  {
-    quiz_name: "Ready, Steady, Go!",
-    category: "Sports",
-    quiz_img:
-      "https://images.pexels.com/photos/332835/pexels-photo-332835.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
-    description:
-      "A fun and challenging quiz that will test your knowledge of various sports, from Formula One and darts to football and Olympic rowing. Put your sports knowledge to the test with this exciting quiz!",
+      "Enhance your knowledge about diabetes, its prevention, and ways to support individuals living with diabetes with this informative quiz. Learn about the importance of awareness, healthy lifestyle choices, and compassionate care.",
     username: "Matt",
   },
   {
-    quiz_name: "World Cup Wonder Quiz",
-    category: "Sports",
+    quiz_name: "Diabetes Lifestyle and Management",
+    category: "Diabetes",
     quiz_img:
-      "https://images.pexels.com/photos/47730/the-ball-stadion-football-the-pitch-47730.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
+      "https://images.pexels.com/photos/12474259/pexels-photo-12474259.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
     description:
-      "This quiz will put your knowledge to the test with questions about football, running, baseball, basketball, tennis, Olympic gold medals, and American football.",
+      "Expand your understanding of diabetes management, healthy habits, and effective strategies for supporting those with diabetes in their daily lives. This quiz covers lifestyle factors and practical approaches for better diabetes control.",
     username: "Matt",
   },
   {
-    quiz_name: "Sporting Glory Challenge",
-    category: "Sports",
+    quiz_name: "Mental Health Awareness and Support",
+    category: "Mental Health",
     quiz_img:
-      "https://images.pexels.com/photos/7005503/pexels-photo-7005503.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
+      "https://images.pexels.com/photos/5699466/pexels-photo-5699466.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
     description:
-      "This quiz tests your knowledge of various sports and their history. Answer questions about the Ryder Cup, FIFA World Cup, NBA championships, Rugby World Cup, Olympic gold medals, Champions League titles, and more. Challenge yourself to see how much you know about the world of sports!",
+      "Enhance your understanding of mental health, its importance, and effective ways to support individuals dealing with mental health challenges. Explore awareness, stigma reduction, and compassionate care through this informative quiz.",
     username: "Matt",
   },
   {
-    quiz_name: "Famous Characters and Movies Trivia",
+    quiz_name: "Mental Health Resilience and Coping",
+    category: "Mental Health",
+    quiz_img:
+      "https://images.pexels.com/photos/2928867/pexels-photo-2928867.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
+    description:
+      "Explore strategies for building mental resilience, managing stress, and promoting well-being in this enlightening quiz. Learn effective coping techniques and ways to enhance your mental health and that of others.",
+    username: "Matt",
+  },
+  {
+    quiz_name: "Hypertension Awareness and Management",
+    category: "Hypertension (High Blood Pressure)",
+    quiz_img:
+      "https://images.pexels.com/photos/7659573/pexels-photo-7659573.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
+    description:
+      "Enhance your knowledge of Hypertension, its causes, risks, and effective strategies for management. This quiz provides insights into awareness, lifestyle modifications, and supporting individuals living with Hypertension.",
+    username: "Joe",
+  },
+  {
+    quiz_name: "Hypertension Prevention and Lifestyle",
+    category: "Hypertension (High Blood Pressure)",
+    quiz_img:
+      "https://images.pexels.com/photos/7108344/pexels-photo-7108344.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
+    description:
+      "Explore strategies for preventing Hypertension and making lifestyle changes to manage this condition effectively. This quiz offers insights into nutrition, physical activity, and empowering individuals with Hypertension.",
+    username: "Joe",
+  },
+  {
+    quiz_name: "Respiratory Conditions Awareness and Management",
+    category: "Respiratory Conditions (Asthma, COPD)",
+    quiz_img:
+      "https://images.pexels.com/photos/5858855/pexels-photo-5858855.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
+    description:
+      "Increase your understanding of common respiratory conditions like Asthma and COPD, including their causes, symptoms, and effective strategies for management. This quiz provides insights into awareness, prevention, and ways to support individuals with respiratory conditions.",
+    username: "Matt",
+  },
+  {
+    quiz_name: "Respiratory Conditions Prevention and Support",
+    category: "Respiratory Conditions (Asthma, COPD)",
+    quiz_img:
+      "https://images.pexels.com/photos/775417/pexels-photo-775417.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
+    description:
+      "Explore strategies for preventing respiratory conditions and providing effective support for individuals living with Asthma and COPD. This quiz offers insights into lifestyle modifications, self-care, and empowering individuals with respiratory conditions.",
+    username: "Matt",
+  },
+  {
+    quiz_name: "Cancer Awareness and Prevention",
+    category: "Cancer",
+    quiz_img:
+      "https://images.pexels.com/photos/1170979/pexels-photo-1170979.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
+    description:
+      "Enhance your understanding of cancer awareness, risk factors, and preventive measures. This quiz explores the importance of early detection, lifestyle choices, and promoting overall well-being to reduce cancer risk.",
+    username: "David",
+  },
+  {
+    quiz_name: "Living with Cancer and Support",
+    category: "Cancer",
+    quiz_img:
+      "https://images.pexels.com/photos/7088488/pexels-photo-7088488.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
+    description:
+      "Explore ways to support and empower individuals living with cancer. This quiz addresses coping strategies, emotional well-being, and the importance of a strong support network in the journey of cancer.",
+    username: "David",
+  },
+  {
+    quiz_name: "Arthritis Awareness and Support",
     category: "Other",
     quiz_img:
-      "https://images.pexels.com/photos/33129/popcorn-movie-party-entertainment.jpg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
+      "https://images.pexels.com/photos/339620/pexels-photo-339620.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
     description:
-      "Test your knowledge of famous characters in movies and TV shows with this quiz.covers a range of iconic characters and their stories. See how many you can get right!",
+      "Test your knowledge about arthritis, a common condition that affects joint health. Learn about awareness and strategies to support individuals living with arthritis.",
     username: "Matt",
   },
   {
-    quiz_name: "Lights, Camera, Action",
+    quiz_name: "Cystic Fibrosis Awareness and Support",
     category: "Other",
     quiz_img:
-      "https://images.pexels.com/photos/5662857/pexels-photo-5662857.png?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
+      "https://images.pexels.com/photos/4226124/pexels-photo-4226124.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
     description:
-      "How well do you know your favorite movies and books? Test your knowledge with this quiz.Answer questions about characters, plot points, and memorable moments.",
+      "Test your knowledge about Cystic Fibrosis, a genetic disorder affecting the respiratory and digestive systems. Learn about awareness and strategies to support individuals living with Cystic Fibrosis.",
     username: "Matt",
   },
 ];

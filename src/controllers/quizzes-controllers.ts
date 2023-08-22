@@ -32,9 +32,10 @@ export const getQuizzes = async (
     } = req.query;
 
     if (category) {
-      await checkCategory(category);
+      const formattedCategory = category.replace(/-/g, " ");
+      await checkCategory(formattedCategory);
       const { quizzes, totalCount } = await fetchQuizzes(
-        category,
+        formattedCategory,
         sort_by,
         order,
         limit,

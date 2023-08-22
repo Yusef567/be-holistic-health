@@ -1,7 +1,6 @@
-\c quiz_odyssey_test
+-- \c holistic_health_test
 
--- \c quiz_odyssey
-
+\c holistic_health
 
 -- psql -f ./practice.sql
 
