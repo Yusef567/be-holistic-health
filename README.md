@@ -1,6 +1,10 @@
-# BE-quiz-odyssey
+# be-holistic-health
 
 This is a RESTful API for an educational health platform covering a range of topics, including respiratory and heart illnesses, lifestyle, and mental health. Users can engage in informative quizzes without an account, while registered users benefit from enhanced features such as liking, disliking, and commenting on quizzes. Healthcare professionals can post quizzes to ensure accuracy, promoting a collaborative approach to health education. Whether utilized for individual learning, community interaction, or professional contribution, this API provides a range of solutions to meet your needs.
+
+## Endpoints Documentation
+
+For detailed information about the available API endpoints and their descriptions, you can refer to the [endpoint.json.ts](./src/endpoints.json.ts) file
 
 ## Authentication and Authorization
 
@@ -18,8 +22,6 @@ When the access token expires, you can obtain a new one by sending a POST reques
 
 To log out a user, make a POST request to /api/auth/logout with the refresh token as an HTTP-only cookie, this will invalidate the refresh token
 
-## Endpoints Documentation
-
 ## Installation and Setup
 
 ### Prerequisites
@@ -31,11 +33,11 @@ To log out a user, make a POST request to /api/auth/logout with the refresh toke
 
 ### Clone the Repository:
 
-Open your terminal and navigate to the directory where you want to store the project. Then, run the following command to clone the repository: `git clone `
+Open your terminal and navigate to the directory where you want to store the project. Then, run the following command to clone the repository: `git clone https://github.com/Yusef567/be-holistic-health.git`
 
 ### Navigate to the Project Directory:
 
-Move into the project directory using the following command: `cd BE-quiz-odyssey`
+Move into the project directory using the following command: `cd be-holistic-health`
 
 ### Open the Project in VS Code:
 
@@ -48,7 +50,7 @@ Install the required dependencies by running: `npm install`
 ### Set Up Environment Variables:
 
 - You will need to create two `.env` files for your enviroment variables in the root directory
-- First create a file called `.env.test` and add the following enviroment variables. `PGDATABASE=holistic_health_test`, `JWT_SECRET=your_jwt_secret`, `REFRESH_TOKEN_SECRET=your_refresh_token_secret`
+- First create a file called `.env.test` and add the following enviroment variables.`PGDATABASE=holistic_health_test`, `JWT_SECRET=your_jwt_secret`, `REFRESH_TOKEN_SECRET=your_refresh_token_secret`
 - Then create a file called `.env.devlopment` and add the following enviroment variables.`PGDATABASE=holistic_health`, `JWT_SECRET=your_jwt_secret`, `REFRESH_TOKEN_SECRET=your_refresh_token_secret`
 - Make sure to add the following `.env.*` into your `gitignore` file to ensure your sensitive information remains private
 
@@ -58,9 +60,9 @@ To create the databases locally you can run the follwoing command: `npm run setu
 
 ### Seeding the Databases
 
-Once you have created the databases you can seed the development database by running the following command `npm run seed`, any changes made to the development database will persist. If you want to reset the development database and remove any changes run the same command again.
+Once you have created the databases you can seed the development database by running the following command `npm run seed`, any changes made to the development database will persist. If you want to reset the development database and remove any changes run the same command again
 
-The test database is reseeded before each test is ran and restarts every time you run the tests by running the `npm test` command with the test data, changes to the test database will not presist.
+The test database is reseeded before each test is ran and restarts every time you run the tests by running the `npm test` command with the test data, changes to the test database will not presist
 
 ### Testing
 
@@ -70,7 +72,7 @@ The tests are located in the `src/__tests__` directory and are written in TypeSc
 
 You can run all the tests using the following command: `npm test`
 
-Feel free to add new test files to the `src/__tests__` directory, and run the same command followed by the file name, to run a specific test file run: `npm test filename.test.ts`
+Feel free to add new test files to the `src/__tests__` directory, to run a specific test file use the same command followed by the file name: `npm test filename.test.ts`
 
 ### Running the Server Locally
 

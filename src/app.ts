@@ -1,5 +1,6 @@
 import express, { Application } from "express";
 import cookieParser from "cookie-parser";
+import cors from "cors";
 import {
   handle500Errors,
   handleCustomErrors,
@@ -16,6 +17,8 @@ import usersRoutes from "./routes/users-routes";
 import apiEndpointsRoutes from "./routes/api-endpoints-routes";
 
 const app: Application = express();
+
+app.use(cors({ credentials: true }));
 
 app.use(express.json());
 
