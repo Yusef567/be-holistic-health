@@ -1,6 +1,8 @@
 # be-holistic-health
 
-This is a RESTful API for an educational health platform covering a range of topics, including respiratory and heart illnesses, lifestyle, and mental health. Users can engage in informative quizzes without an account, while registered users benefit from enhanced features such as liking, disliking, and commenting on quizzes. Healthcare professionals can post quizzes to ensure accuracy, promoting a collaborative approach to health education. Whether utilized for individual learning, community interaction, or professional contribution, this API provides a range of solutions to meet your needs.
+This is a RESTful API for an educational health platform covering a range of topics, including respiratory and heart illnesses, lifestyle, and mental health. Users can engage in informative quizzes without an account, while registered users benefit from enhanced features such as liking, disliking, and commenting on quizzes. Healthcare professionals can post quizzes to ensure accuracy, promoting a collaborative approach to health education. Whether utilized for individual learning, community interaction, or professional contribution, this API provides a range of solutions to meet your needs
+
+You can view the hosted API [here](https://holistic-backend.onrender.com/api)
 
 ## Endpoints Documentation
 
