@@ -1,26 +1,27 @@
 {
-  "name": "be-quiz-odyssey",
+  "name": "be-holistic-health",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "dist/listen.js",
   "scripts": {
     "test": "jest",
     "setup-dbs": "psql -f setup.sql",
     "seed": "npx tsc && node dist/seeds/run-seed.js",
     "start": "npx tsc && node dist/listen.js",
-    "dev": "npx tsc -w & nodemon dist/listen.js"
+    "dev": "npx tsc -w & nodemon dist/listen.js",
+    "seed-prod": "NODE_ENV=production npm run seed"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Yusef567/BE-quiz-odyssey.git"
+    "url": "git+https://github.com/Yusef567/be-holistic-health.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/Yusef567/BE-quiz-odyssey/issues"
+    "url": "https://github.com/Yusef567/be-holistic-health/issues"
   },
-  "homepage": "https://github.com/Yusef567/BE-quiz-odyssey#readme",
+  "homepage": "https://github.com/Yusef567/be-holistic-health#readme",
   "devDependencies": {
     "@types/bcrypt": "^5.0.0",
     "@types/cookie-parser": "^1.4.3",
