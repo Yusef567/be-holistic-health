@@ -31,7 +31,8 @@ const loginUser = (req, res, next) => __awaiter(void 0, void 0, void 0, function
         const { accessToken, refreshToken } = yield (0, auth_models_1.login)(username, password);
         res.cookie("refreshToken", refreshToken, {
             httpOnly: true,
-            sameSite: "Lax",
+            secure: true,
+            sameSite: "None",
             maxAge: 7 * 24 * 60 * 60 * 1000,
         });
         res.status(200).send({ accessToken });

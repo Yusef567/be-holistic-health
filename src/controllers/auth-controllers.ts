@@ -24,7 +24,8 @@ export const loginUser = async (
 
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
-      sameSite: "Lax",
+      secure: true,
+      sameSite: "None",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
     // secure: true,
