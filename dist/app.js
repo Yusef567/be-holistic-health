@@ -15,7 +15,7 @@ const users_routes_1 = __importDefault(require("./routes/users-routes"));
 const api_endpoints_routes_1 = __importDefault(require("./routes/api-endpoints-routes"));
 const app = (0, express_1.default)();
 const corsOptions = {
-    origin: "http://localhost:3000",
+    origin: ["http://localhost:3000", "https://holistichealth.netlify.app"],
     credentials: true,
 };
 app.use((0, cors_1.default)(corsOptions));

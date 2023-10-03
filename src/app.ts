@@ -19,7 +19,7 @@ import apiEndpointsRoutes from "./routes/api-endpoints-routes";
 const app: Application = express();
 
 const corsOptions = {
-  origin: "http://localhost:3000",
+  origin: ["http://localhost:3000", "https://holistichealth.netlify.app"],
   credentials: true,
 };
 
