@@ -14,7 +14,11 @@ const quizzes_routes_1 = __importDefault(require("./routes/quizzes-routes"));
 const users_routes_1 = __importDefault(require("./routes/users-routes"));
 const api_endpoints_routes_1 = __importDefault(require("./routes/api-endpoints-routes"));
 const app = (0, express_1.default)();
-app.use((0, cors_1.default)({ credentials: true }));
+const corsOptions = {
+    origin: "http://localhost:3000",
+    credentials: true,
+};
+app.use((0, cors_1.default)(corsOptions));
 app.use(express_1.default.json());
 app.use((0, cookie_parser_1.default)());
 app.use("/api/auth", auth_routes_1.default);
