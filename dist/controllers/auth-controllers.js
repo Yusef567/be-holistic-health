@@ -32,6 +32,7 @@ const loginUser = (req, res, next) => __awaiter(void 0, void 0, void 0, function
         res.cookie("refreshToken", refreshToken, {
             httpOnly: true,
             sameSite: "none",
+            secure: true,
             maxAge: 7 * 24 * 60 * 60 * 1000,
         });
         res.status(200).send({ accessToken });
