@@ -18,7 +18,12 @@ import apiEndpointsRoutes from "./routes/api-endpoints-routes";
 
 const app: Application = express();
 
-app.use(cors({ credentials: true }));
+const corsOptions = {
+  origin: "http://localhost:3000",
+  credentials: true,
+};
+
+app.use(cors(corsOptions));
 
 app.use(express.json());
 
