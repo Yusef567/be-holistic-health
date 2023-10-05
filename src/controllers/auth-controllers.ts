@@ -24,12 +24,11 @@ export const loginUser = async (
 
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
-      sameSite: "None",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-      path: "/api/auth/refresh-token",
       secure: true,
+      sameSite: "None",
+      path: "/api/auth",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
     });
-    // secure: true,
 
     res.status(200).send({ accessToken });
   } catch (err) {
