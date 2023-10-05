@@ -109,6 +109,11 @@ export const logoutUser = async (
       await db.query(clearRefreshTokenQuery, [refreshTokenPayload.id]);
     }
 
+    res.setHeader(
+      "Cache-Control",
+      "no-store, no-cache, must-revalidate, private"
+    );
+
     res.clearCookie("refreshToken");
 
     res.status(200).send({ msg: "Logout successful" });

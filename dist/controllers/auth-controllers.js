@@ -80,6 +80,7 @@ const logoutUser = (req, res, next) => __awaiter(void 0, void 0, void 0, functio
             const clearRefreshTokenQuery = "UPDATE users SET refresh_token = NULL WHERE user_id = $1 RETURNING *";
             yield connection_1.default.query(clearRefreshTokenQuery, [refreshTokenPayload.id]);
         }
+        res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, private");
         res.clearCookie("refreshToken");
         res.status(200).send({ msg: "Logout successful" });
     }
