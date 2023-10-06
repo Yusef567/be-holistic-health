@@ -103,13 +103,20 @@ export const logoutUser = async (
       refreshToken,
       process.env.REFRESH_TOKEN_SECRET as string
     ) as JwtPayload;
+
     if (refreshTokenPayload?.id) {
       const clearRefreshTokenQuery =
         "UPDATE users SET refresh_token = NULL WHERE user_id = $1 RETURNING *";
       await db.query(clearRefreshTokenQuery, [refreshTokenPayload.id]);
     }
 
-    res.clearCookie("refreshToken");
+    res.clearCookie("refreshToken", {
+      httpOnly: true,
+      secure: true,
+      sameSite: "None",
+      path: "/api/auth",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
 
     res.status(200).send({ msg: "Logout successful" });
   } catch (err) {
