@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import { login } from "../models/auth-models";
+import { isRefreshTokenValid, login } from "../models/auth-models";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import db from "../connection";
 import passport from "../passport-config";
@@ -74,6 +74,8 @@ export const refreshTokens = async (
     ) as JwtPayload;
 
     if (refreshTokenPayload?.id) {
+      await isRefreshTokenValid(refreshTokenPayload?.id);
+
       const newAccessToken = jwt.sign(
         { id: refreshTokenPayload.id },
         process.env.JWT_SECRET as string,

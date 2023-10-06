@@ -178,6 +178,8 @@ describe("POST /api/users", () => {
 });
 describe("POST /api/auth/refresh-token", () => {
     it("200: should respond with a new access token if passed a valid refresh token", () => __awaiter(void 0, void 0, void 0, function* () {
+        const setRefreshTokenQuery = "UPDATE users SET refresh_token = $1 WHERE user_id = 2 RETURNING *";
+        yield connection_1.default.query(setRefreshTokenQuery, [refreshToken]);
         const { body } = yield (0, supertest_1.default)(app_1.default)
             .post("/api/auth/refresh-token")
             .set("Cookie", `refreshToken=${refreshToken}`)

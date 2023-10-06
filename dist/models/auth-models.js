@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.login = void 0;
+exports.isRefreshTokenValid = exports.login = void 0;
 const connection_1 = __importDefault(require("../connection"));
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
@@ -34,3 +34,12 @@ const login = (username, password) => __awaiter(void 0, void 0, void 0, function
     return { accessToken, refreshToken };
 });
 exports.login = login;
+const isRefreshTokenValid = (user_id) => __awaiter(void 0, void 0, void 0, function* () {
+    const queryStr = "SELECT refresh_token FROM users WHERE user_id = $1";
+    const queryResponse = yield connection_1.default.query(queryStr, [user_id]);
+    const dbRefreshToken = queryResponse.rows[0];
+    if (!dbRefreshToken.refresh_token) {
+        throw { status: 401, msg: "Invalid refresh token" };
+    }
+});
+exports.isRefreshTokenValid = isRefreshTokenValid;

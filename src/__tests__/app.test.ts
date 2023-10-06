@@ -217,6 +217,10 @@ describe("POST /api/users", () => {
 
 describe("POST /api/auth/refresh-token", () => {
   it("200: should respond with a new access token if passed a valid refresh token", async () => {
+    const setRefreshTokenQuery =
+      "UPDATE users SET refresh_token = $1 WHERE user_id = 2 RETURNING *";
+    await db.query(setRefreshTokenQuery, [refreshToken]);
+
     const { body } = await request(app)
       .post("/api/auth/refresh-token")
       .set("Cookie", `refreshToken=${refreshToken}`)

@@ -60,6 +60,7 @@ const refreshTokens = (req, res, next) => __awaiter(void 0, void 0, void 0, func
         }
         const refreshTokenPayload = jsonwebtoken_1.default.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
         if (refreshTokenPayload === null || refreshTokenPayload === void 0 ? void 0 : refreshTokenPayload.id) {
+            yield (0, auth_models_1.isRefreshTokenValid)(refreshTokenPayload === null || refreshTokenPayload === void 0 ? void 0 : refreshTokenPayload.id);
             const newAccessToken = jsonwebtoken_1.default.sign({ id: refreshTokenPayload.id }, process.env.JWT_SECRET, { expiresIn: "15m" });
             res.status(200).send({ accessToken: newAccessToken });
         }

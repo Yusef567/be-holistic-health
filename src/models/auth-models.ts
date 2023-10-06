@@ -42,3 +42,13 @@ export const login = async (username: string, password: string) => {
 
   return { accessToken, refreshToken };
 };
+
+export const isRefreshTokenValid = async (user_id: number) => {
+  const queryStr = "SELECT refresh_token FROM users WHERE user_id = $1";
+  const queryResponse = await db.query(queryStr, [user_id]);
+  const dbRefreshToken = queryResponse.rows[0];
+
+  if (!dbRefreshToken.refresh_token) {
+    throw { status: 401, msg: "Invalid refresh token" };
+  }
+};
