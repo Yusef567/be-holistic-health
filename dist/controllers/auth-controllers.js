@@ -85,7 +85,6 @@ const logoutUser = (req, res, next) => __awaiter(void 0, void 0, void 0, functio
             secure: true,
             sameSite: "None",
             path: "/api/auth",
-            maxAge: 7 * 24 * 60 * 60 * 1000,
         });
         res.status(200).send({ msg: "Logout successful" });
     }
