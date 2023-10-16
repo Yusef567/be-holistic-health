@@ -28,7 +28,7 @@ export const loginUser = async (
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
       secure: true,
-      sameSite: "Lax",
+      sameSite: "None",
       path: "/api/auth",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
@@ -122,7 +122,7 @@ export const logoutUser = async (
       res.clearCookie("refreshToken", {
         httpOnly: true,
         secure: true,
-        sameSite: "Lax",
+        sameSite: "None",
         path: "/api/auth",
       });
 
