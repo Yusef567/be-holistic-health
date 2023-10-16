@@ -34,7 +34,6 @@ const loginUser = (req, res, next) => __awaiter(void 0, void 0, void 0, function
             sameSite: "Lax",
             path: "/api/auth",
             maxAge: 7 * 24 * 60 * 60 * 1000,
-            domain: "localhost",
         });
         res.status(200).send({ accessToken });
     }
@@ -91,7 +90,6 @@ const logoutUser = (req, res, next) => __awaiter(void 0, void 0, void 0, functio
                 secure: true,
                 sameSite: "Lax",
                 path: "/api/auth",
-                domain: "localhost",
             });
             res.status(200).send({ msg: "Logout successful" });
         }
