@@ -31,7 +31,7 @@ const loginUser = (req, res, next) => __awaiter(void 0, void 0, void 0, function
         res.cookie("refreshToken", refreshToken, {
             httpOnly: true,
             secure: true,
-            sameSite: "None",
+            sameSite: "Lax",
             path: "/api/auth",
             maxAge: 7 * 24 * 60 * 60 * 1000,
         });
@@ -88,7 +88,7 @@ const logoutUser = (req, res, next) => __awaiter(void 0, void 0, void 0, functio
             res.clearCookie("refreshToken", {
                 httpOnly: true,
                 secure: true,
-                sameSite: "None",
+                sameSite: "Lax",
                 path: "/api/auth",
             });
             res.status(200).send({ msg: "Logout successful" });
