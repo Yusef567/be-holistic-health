@@ -31,6 +31,7 @@ export const loginUser = async (
       sameSite: "Lax",
       path: "/api/auth",
       maxAge: 7 * 24 * 60 * 60 * 1000,
+      domain: "localhost",
     });
 
     res.status(200).send({ accessToken });
@@ -124,6 +125,7 @@ export const logoutUser = async (
         secure: true,
         sameSite: "Lax",
         path: "/api/auth",
+        domain: "localhost",
       });
 
       res.status(200).send({ msg: "Logout successful" });
