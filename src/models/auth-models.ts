@@ -25,15 +25,15 @@ export const login = async (username: string, password: string) => {
     throw { status: 401, msg: "Incorrect password" };
   }
   const accessToken = jwt.sign(
-    { id: user.user_id },
+    { id: user.user_id, username: user.username },
     process.env.JWT_SECRET as string,
-    { expiresIn: "15m" }
+    { expiresIn: "25sec" }
   );
 
   const refreshToken = jwt.sign(
-    { id: user.user_id },
+    { id: user.user_id, username: user.username },
     process.env.REFRESH_TOKEN_SECRET as string,
-    { expiresIn: "7d" }
+    { expiresIn: "1m" }
   );
 
   const updateRefreshTokenQuery =
@@ -51,4 +51,13 @@ export const isRefreshTokenValid = async (user_id: number) => {
   if (!dbRefreshToken.refresh_token) {
     throw { status: 401, msg: "Invalid refresh token" };
   }
+
+  return true;
+};
+
+export const clearRefreshToken = async (user_id: number) => {
+  const clearRefreshTokenQuery =
+    "UPDATE users SET refresh_token = NULL WHERE user_id = $1 RETURNING *";
+
+  await db.query(clearRefreshTokenQuery, [user_id]);
 };

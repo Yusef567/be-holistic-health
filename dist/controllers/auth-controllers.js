@@ -15,7 +15,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.logoutUser = exports.refreshTokens = exports.protectedController = exports.loginUser = void 0;
 const auth_models_1 = require("../models/auth-models");
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
-const connection_1 = __importDefault(require("../connection"));
 const passport_config_1 = __importDefault(require("../passport-config"));
 if (!process.env.REFRESH_TOKEN_SECRET) {
     throw new Error("REFRESH_TOKEN_SECRET not set");
@@ -53,21 +52,28 @@ const protectedController = (req, res) => __awaiter(void 0, void 0, void 0, func
 });
 exports.protectedController = protectedController;
 const refreshTokens = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        const refreshToken = req.cookies.refreshToken;
-        if (!refreshToken) {
-            return res.status(401).send({ msg: "Refresh token not found" });
-        }
-        const refreshTokenPayload = jsonwebtoken_1.default.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
-        if (refreshTokenPayload === null || refreshTokenPayload === void 0 ? void 0 : refreshTokenPayload.id) {
-            yield (0, auth_models_1.isRefreshTokenValid)(refreshTokenPayload === null || refreshTokenPayload === void 0 ? void 0 : refreshTokenPayload.id);
-            const newAccessToken = jsonwebtoken_1.default.sign({ id: refreshTokenPayload.id }, process.env.JWT_SECRET, { expiresIn: "15m" });
-            res.status(200).send({ accessToken: newAccessToken });
-        }
+    const refreshToken = req.cookies.refreshToken;
+    if (!refreshToken) {
+        return res.status(401).send({ msg: "Refresh token not found" });
     }
-    catch (err) {
-        next(err);
-    }
+    jsonwebtoken_1.default.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, (jwtError, refreshTokenPayload) => __awaiter(void 0, void 0, void 0, function* () {
+        try {
+            if (jwtError) {
+                return next(jwtError);
+            }
+            if (refreshTokenPayload === null || refreshTokenPayload === void 0 ? void 0 : refreshTokenPayload.id) {
+                yield (0, auth_models_1.isRefreshTokenValid)(refreshTokenPayload === null || refreshTokenPayload === void 0 ? void 0 : refreshTokenPayload.id);
+                const newAccessToken = jsonwebtoken_1.default.sign({
+                    id: refreshTokenPayload.id,
+                    username: refreshTokenPayload.username,
+                }, process.env.JWT_SECRET, { expiresIn: "1m" });
+                res.status(200).send({ accessToken: newAccessToken });
+            }
+        }
+        catch (err) {
+            next(err);
+        }
+    }));
 });
 exports.refreshTokens = refreshTokens;
 const logoutUser = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
@@ -78,16 +84,15 @@ const logoutUser = (req, res, next) => __awaiter(void 0, void 0, void 0, functio
         }
         const refreshTokenPayload = jsonwebtoken_1.default.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
         if (refreshTokenPayload === null || refreshTokenPayload === void 0 ? void 0 : refreshTokenPayload.id) {
-            const clearRefreshTokenQuery = "UPDATE users SET refresh_token = NULL WHERE user_id = $1 RETURNING *";
-            yield connection_1.default.query(clearRefreshTokenQuery, [refreshTokenPayload.id]);
+            yield (0, auth_models_1.clearRefreshToken)(refreshTokenPayload.id);
+            res.clearCookie("refreshToken", {
+                httpOnly: true,
+                secure: true,
+                sameSite: "None",
+                path: "/api/auth",
+            });
+            res.status(200).send({ msg: "Logout successful" });
         }
-        res.clearCookie("refreshToken", {
-            httpOnly: true,
-            secure: true,
-            sameSite: "None",
-            path: "/api/auth",
-        });
-        res.status(200).send({ msg: "Logout successful" });
     }
     catch (err) {
         next(err);
